@@ -12,21 +12,38 @@
 
 namespace BioCoder
 {
-	enum VOLUME_UNIT { NANO_LITER, MICRO_LITER, MILLI_LITER, LITER, VOLUME_NOT_SPECIFIED};
-	class Volume
+enum VOLUME_UNIT { NANO_LITER, MICRO_LITER, MILLI_LITER, LITER, VOLUME_NOT_SPECIFIED};
+class Volume
+{
+private:
+	VOLUME_UNIT _unit;
+	double _value;
+public:
+
+	Volume(): _unit(VOLUME_NOT_SPECIFIED), _value(0) {}
+	Volume(VOLUME_UNIT u, double v): _unit(u), _value(v) {}
+
+	VOLUME_UNIT GetVolumeUnits() const { return _unit; }
+	double GetValue(VOLUME_UNIT unit = VOLUME_NOT_SPECIFIED) const
 	{
-	private:
-		VOLUME_UNIT _unit;
-		double _value;
-	public:
-
-		Volume(): _unit(VOLUME_NOT_SPECIFIED), _value(0) {}
-		Volume(VOLUME_UNIT u, double v): _unit(u), _value(v) {}
-
-		VOLUME_UNIT GetVolumeUnits() const { return _unit; }
-		double GetValue() const { return _value; }
-		double GetUL()
+		switch(unit)
 		{
+		case NANO_LITER:
+			switch(_unit)
+			{
+			case NANO_LITER:
+				return _value;
+			case MICRO_LITER:
+				return _value * 1000;
+			case MILLI_LITER:
+				return _value * 1000000;
+			case LITER:
+				return _value * 1000000000;
+			default:
+				return -1;
+			}
+			break;
+		case MICRO_LITER:
 			switch(_unit)
 			{
 			case NANO_LITER:
@@ -40,32 +57,67 @@ namespace BioCoder
 			default:
 				return -1;
 			}
-		}
-
-		void display_vol(FILE* fp)
-		{
+			break;
+		case MILLI_LITER:
 			switch(_unit)
 			{
-			case NANO_LITER:
-				fprintf(fp, "<b><font color=#357EC7>%g %s</font></b>", _value, "nl");
-				break;
-			case MICRO_LITER:
-				fprintf(fp, "<b><font color=#357EC7>%g %s</font></b>", _value, "ul");
-				break;
-			case MILLI_LITER:
-				fprintf(fp, "<b><font color=#357EC7>%g %s</font></b>", _value, "ml");
-				break;
-			case LITER:
-				fprintf(fp, "<b><font color=#357EC7>%g %s</font></b>", _value, "l");
-				break;
-			default:
-				break;
+				case NANO_LITER:
+					return _value / 1000000;
+				case MICRO_LITER:
+					return _value / 1000;
+				case MILLI_LITER:
+					return _value ;
+				case LITER:
+					return _value * 1000;
+				default:
+					return -1;
 			}
-
+			break;
+		case LITER:
+			switch(_unit)
+			{
+				case NANO_LITER:
+					return _value / 1000000000;
+				case MICRO_LITER:
+					return _value / 1000000;
+				case MILLI_LITER:
+					return _value / 1000;
+				case LITER:
+					return _value ;
+				default:
+					return -1;
+			}
+			break;
+		default:
+			return _value;
 		}
-	};
+	}
 
-	/*std::ostream& operator<<(std::ostream& os, const Volume& obj)
+	void display_vol(FILE* fp)
+	{
+		switch(_unit)
+		{
+		case NANO_LITER:
+			fprintf(fp, "<b><font color=#357EC7>%g %s</font></b>", _value, "nl");
+			break;
+		case MICRO_LITER:
+			fprintf(fp, "<b><font color=#357EC7>%g %s</font></b>", _value, "ul");
+			break;
+		case MILLI_LITER:
+			fprintf(fp, "<b><font color=#357EC7>%g %s</font></b>", _value, "ml");
+			break;
+		case LITER:
+			fprintf(fp, "<b><font color=#357EC7>%g %s</font></b>", _value, "l");
+			break;
+		default:
+			break;
+		}
+
+	}
+
+};
+
+/*std::ostream& operator<<(std::ostream& os, const Volume& obj)
 	{
 
 		switch ( obj.GetVolumeUnits()) {

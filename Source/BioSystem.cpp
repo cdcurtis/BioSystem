@@ -15,6 +15,52 @@
 
 namespace BioCoder
 {
+void BioSystem :: ClearContainerOpList(Container * c)
+{
+	c->_instructionStack.clear();
+}
+void BioSystem :: AddOpToContainer(BioOperation* op, Container * container)
+{
+	container->_instructionStack.push_back(op);
+}
+void BioSystem :: BioGraphMaintance(BioOperation * op)
+{
+	if(op->_opType == DISPENSE)
+		this->_roots.push_back(op);
+
+	if(this->_userDefinedLevelTree.size()==0) {
+		std::vector<BioOperation*> bioOperations;
+		this->_userDefinedLevelTree.push_back(bioOperations);
+	}
+
+	this->_userDefinedLevelTree.at(_userDefinedLevelTree.size()-1).push_back(op);
+}
+void BioSystem :: SetOpsParent(BioOperation * op, Container * container)
+{
+
+	if(container->_instructionStack.size() == 0) {
+		std::cerr<<"Error Parents stack is empty. Expected to find parents for OP:"<< op->Name() << std::endl;
+		exit(-1);
+	}
+
+	for(unsigned int parentIndex = 0; parentIndex < container->_instructionStack.size(); ++parentIndex ) {
+		container->_instructionStack.at(parentIndex)->_children.push_back(op);
+		op->_parents.push_back(container->_instructionStack.at(parentIndex));
+	}
+
+}
+
+void BioSystem :: TransferOperation(Container* source, Container* destination, bool warning)
+{
+	if(warning)
+		std::cerr<<"Implicit transfer contents call." <<std::endl;
+
+	for(unsigned int opIndex = 0; opIndex < source->_instructionStack.size(); ++opIndex){
+		destination->_instructionStack.push_back(source->_instructionStack.at(opIndex));
+	}
+
+	source->_instructionStack.clear();
+}
 
 void BioSystem :: PrintLeveledProtocol()
 {
@@ -280,14 +326,14 @@ Fluid * BioSystem :: new_fluid (std::string name, std::string state, float temp,
 	return result;
 }
 
-Fluid BioSystem :: new_operation(char* name)
+/*Fluid BioSystem :: new_operation(char* name)
 {
 	Fluid result;
 	result.new_name = name;
 	result.original_name = name;
 	result.type = OPERATION;
 	return result;
-}
+}*/
 
 /*void BioSystem :: store_container_names (int i, char* name)
 {
@@ -378,20 +424,12 @@ void BioSystem :: measure_fluid(Fluid* fluid1, Container* container1) // measure
 void BioSystem :: measure_fluid(Fluid *fluid1, Volume volume1, Container* container1)
 {
 
-	BioOperation * disp = new BioOperation(_opNum++,DISPENSE,fluid1);
-	this->_roots.push_back(disp);
-	this->_userDefinedLevelTree[_userDefinedLevelTree.size()-1].push_back(disp);
-	container1->_instructionStack.push_back(disp);
+	BioOperation * disp = new BioOperation(_opNum++,DISPENSE,volume1,fluid1);
 
-	// graph maintenance
-	/*	{
-		Fluid o = new_operation("measure fluid");
-		all_nodes-> create_edge_from_fluids(&fluid1, &o);
-		all_nodes-> create_edge_from_fluid_to_container(&o, &container1);
-	}
-	 */
+	this->AddOpToContainer(disp,container1);
+	this->BioGraphMaintance(disp);
 
-	if ((fluid1->volume == 0)|| (fluid1->volume < (volume1.GetUL())))
+	if ((fluid1->volume == 0)|| (fluid1->volume < (volume1.GetValue(NANO_LITER))))
 		fprintf(fp, "<font color = red>Warning: You are out of %s! Please make sure you have enough before carrying on with the protocol.<br></font>", fluid1->new_name.c_str());
 	if (usage_list_fluids[fluid1->usage_index]->original_name == fluid1->original_name)
 		usage_list_fluids[fluid1->usage_index]->used = 1;
@@ -412,7 +450,7 @@ void BioSystem :: measure_fluid(Fluid *fluid1, Volume volume1, Container* contai
 		list_container_no++;
 	}
 
-	if(volume1 != Volume())
+	if(volume1.GetVolumeUnits() != VOLUME_NOT_SPECIFIED)
 	{
 		fluid1->volume = volume1.GetValue();
 		fluid1->unit=volume1.GetVolumeUnits();
@@ -477,26 +515,24 @@ void BioSystem :: measure_fluid(Fluid *fluid1, Volume volume1, Container* contai
 	}
 	fluid1->container = container1->id;
 	container1->contents = fluid1;
-	container1->volume = container1->volume + volume1.GetUL();
+	container1->volume = container1->volume + volume1.GetValue(NANO_LITER);
 }
 
-void BioSystem::measure_fluid(Container * source, Container * destination)
-{ //TODO:: THIS IS A MIX STEP.
+void BioSystem::measure_fluid(Container * source, Container * destination) // Transfer OPERATION
+{
+
+
+	this->TransferOperation(source, destination,true);
+
+
 	if(source->contents ==NULL)
 	{
 		Fluid* f = this->new_fluid("temp");
 		source->contents = f;
 	}
-	/*proSteps->assayPreMix(container,container1);
-		//Graph maintenance
-		{
-			Fluid o = new_operation("measure fluid");
-			all_nodes-> create_edge_from_container_to_fluid(&container, &o);
-			all_nodes-> create_edge_from_fluid_to_container(&o, &container1);
-		}*/
 
 	if (source->volume == 0)
-		fprintf(fp, "<font color = red>Warning: You are out of %s! Please make sure you have enough before carrying on with the protocol.<br></font>", source->name);
+		fprintf(fp, "<font color = red>Warning: You are out of %s! Please make sure you have enough before carrying on with the protocol.<br></font>", source->name.c_str());
 	if (usage_list_containers[source->usage_index]->name == source->name)
 		usage_list_containers[source->usage_index]->used = 1;
 	else
@@ -521,18 +557,18 @@ void BioSystem::measure_fluid(Container * source, Container * destination)
 		if (destination->contents == NULL || destination->contents->new_name == "")
 		{
 			if(source->contents !=NULL && source->contents->state == "")
-				fprintf(fp, "Measure out %s into %s.<br>", source->contents->new_name, destination->name);
+				fprintf(fp, "Measure out %s into %s.<br>", source->contents->new_name.c_str(), destination->name.c_str());
 			else
-				fprintf(fp, "Measure out <a href=\"#%s\" ><font color=#357EC7>%s</font></a> into %s.<br>", source->name, source->name, destination->name);
+				fprintf(fp, "Measure out <a href=\"#%s\" ><font color=#357EC7>%s</font></a> into %s.<br>", source->name.c_str(), source->name.c_str(), destination->name.c_str());
 			first = 0;
 			prev_cont++;
 		}
 		else
 		{
 			if(source->contents!= NULL && destination->contents != NULL && source->contents->state == "")
-				fprintf(fp, "Measure out %s into %s.<br>", source->contents->new_name, destination->contents->new_name);
+				fprintf(fp, "Measure out %s into %s.<br>", source->contents->new_name.c_str(), destination->contents->new_name.c_str());
 			else
-				fprintf(fp, "Measure out <a href=\"#%s\" ><font color=#357EC7>%s</font></a> into %s.<br>", source->name, source->name, destination->name);
+				fprintf(fp, "Measure out <a href=\"#%s\" ><font color=#357EC7>%s</font></a> into %s.<br>", source->name.c_str(), source->name.c_str(), destination->name.c_str());
 			first = 0;
 			prev_cont++;
 		}
@@ -541,24 +577,24 @@ void BioSystem::measure_fluid(Container * source, Container * destination)
 	{
 		prev_container = destination->name;
 		if( source->contents!= NULL && source->contents->state == "")
-			fprintf(fp, "Measure out %s into %s.<br>", source->contents->new_name, destination->name);
+			fprintf(fp, "Measure out %s into %s.<br>", source->contents->new_name.c_str(), destination->name.c_str());
 		else
-			fprintf(fp, "Measure out <a href=\"#%s\" ><font color=#357EC7>%s</font></a> into %s.<br>", source->name, source->name, source->name);
+			fprintf(fp, "Measure out <a href=\"#%s\" ><font color=#357EC7>%s</font></a> into %s.<br>", source->name.c_str(), source->name.c_str(), source->name.c_str());
 		prev_cont++;
 	}
 	else if(prev_container == destination->name)
 	{
-		fprintf(fp, "Add <font color=#357EC7>%s</font> to %s.<br>", source->contents->new_name, destination->contents->new_name);
+		fprintf(fp, "Add <font color=#357EC7>%s</font> to %s.<br>", source->contents->new_name.c_str(), destination->contents->new_name.c_str());
 		prev_container = destination->name;
 	}
 	else if(source->contents!= NULL && destination->contents != NULL && source->contents->state == "")
 	{
-		fprintf(fp, "Measure out %s into %s.<br>", source->contents->new_name, destination->name);
+		fprintf(fp, "Measure out %s into %s.<br>", source->contents->new_name.c_str(), destination->name.c_str());
 		prev_container = destination->name;
 	}
 	else
 	{
-		fprintf(fp, "Measure out <a href=\"#%s\" ><font color=#357EC7>%s</font></a> into %s.<br>", source->contents->new_name, source->contents->new_name, destination->name);
+		fprintf(fp, "Measure out <a href=\"#%s\" ><font color=#357EC7>%s</font></a> into %s.<br>", source->contents->new_name.c_str(), source->contents->new_name.c_str(), destination->name.c_str());
 		prev_container = destination->name;
 	}
 	source->contents->container = destination->id;
@@ -567,6 +603,120 @@ void BioSystem::measure_fluid(Container * source, Container * destination)
 	destination->volume = destination->volume + source->volume;
 	source->volume=0;
 //	container.tLinkName.clear();
+}
+
+
+void BioSystem :: measure_fluid(Container* source, Volume volume1, Container* destination, bool ensureMeasurement)
+{
+
+	BioOperation* split = new BioOperation(this->_opNum++, SPLIT, volume1);
+	this->SetOpsParent(split,source);
+	this->BioGraphMaintance(split);
+	this->AddOpToContainer(split,source);
+	this->AddOpToContainer(split,destination);
+	this->BioGraphMaintance(split);
+
+
+	//BioCoder Legacy
+	if ((source->volume == 0) || (source->volume < volume1.GetValue(NANO_LITER)))
+		fprintf(fp, "<font color = red>Warning: You are measuring out more than the available volume of %s! Please make sure you have enough before carrying on with the protocol.<br></font>", source->contents->new_name.c_str());
+	if (usage_list_containers[source->usage_index]->name == source->name.c_str())
+		usage_list_containers[source->usage_index]->used = 1;
+	else
+	{
+		source->used = 1;
+		usage_list_containers[list_container_no] = source;
+		source->usage_index = list_container_no;
+		list_container_no++;
+	}
+	if (usage_list_containers[destination->usage_index]->name == destination->name)
+		usage_list_containers[destination->usage_index]->used = 1;
+	else
+	{
+		destination->used = 1;
+		usage_list_containers[list_container_no] = destination;
+		destination->usage_index = list_container_no;
+		list_container_no++;
+	}
+	if (first == 1)
+	{
+		source->contents->volume = source->contents->volume - volume1.GetValue(NANO_LITER);
+		prev_container = destination->name;
+		fprintf(fp, "Measure out ");
+		volume1.display_vol(fp);
+		if (destination->contents != NULL || destination->contents->new_name == "")
+		{
+			if(source->contents != NULL || source->contents->state == "")
+				fprintf(fp, " of <font color=#357EC7>%s</font> into %s.<br>", source->contents->new_name.c_str(), destination->name.c_str());
+			else
+				fprintf(fp, " of <a href=\"#%s\" ><font color=#357EC7>%s</font></a> into %s.<br>", source->contents->new_name.c_str(), source->contents->new_name.c_str(), destination->name.c_str());
+			first = 0;
+			prev_cont++;
+		}
+		else
+		{
+			if(source->contents->state == "")
+				fprintf(fp, " of <font color=#357EC7>%s</font> into %s.<br>", source->contents->new_name.c_str(), destination->contents->new_name.c_str());
+			else
+				fprintf(fp, " of <a href=\"#%s\" ><font color=#357EC7>%s</font></a> into %s.<br>", source->contents->new_name.c_str(), source->contents->new_name.c_str(), destination->contents->new_name.c_str());
+			first = 0;
+			prev_cont++;
+		}
+	}
+	else if (prev_cont == 1)
+	{
+		source->contents->volume = source->contents->volume - volume1.GetValue(NANO_LITER);
+		prev_container = destination->name;
+		fprintf(fp, "Measure out ");
+		volume1.display_vol(fp);
+		if(source->contents->state == "")
+			fprintf(fp, " of <font color=#357EC7>%s</font> into %s.<br>", source->contents->new_name.c_str(), destination->name.c_str());
+		else
+			fprintf(fp, " of <a href=\"#%s\" ><font color=#357EC7>%s</font></a> into %s.<br>", source->contents->new_name.c_str(), source->contents->new_name.c_str(), destination->name.c_str());
+		prev_cont++;
+	}
+	else if (prev_container == destination->name)
+	{
+		source->contents->volume = source->contents->volume + volume1.GetValue(NANO_LITER);
+		if(source->contents->state == "")
+		{
+			fprintf(fp, "Add ");
+			volume1.display_vol(fp);
+			fprintf(fp, " of <font color=#357EC7>%s</font>.<br>", source->contents->new_name.c_str());
+		}
+		else
+		{
+			fprintf(fp, "Add ");
+			volume1.display_vol(fp);
+			fprintf(fp, " of <a href=\"#%s\" ><font color=#357EC7>%s</font></a>.<br>", source->contents->new_name.c_str(), source->contents->new_name.c_str());
+		}
+	}
+	else
+	{
+		source->contents->volume = source->contents->volume - volume1.GetValue(NANO_LITER);
+		fprintf(fp, "Measure out ");
+		volume1.display_vol(fp);
+		if(source->contents->state == "")
+		{
+			fprintf(fp, " of <font color=#357EC7>%s</font> into %s.<br>", source->contents->new_name.c_str(), destination->name.c_str());
+			prev_container = destination->name;
+		}
+		else
+		{
+			fprintf(fp, " of <a href=\"#%s\" ><font color=#357EC7>%s</font></a> into %s.<br>", source->contents->new_name.c_str(), source->contents->new_name.c_str(), destination->name.c_str());
+			prev_container = destination->name;
+		}
+	}
+	source->contents->container = destination->id;
+	destination->contents = source->contents;
+	destination->volume = destination->volume + volume1.GetValue(NANO_LITER);
+	source->volume-= volume1.GetValue(NANO_LITER);
+}
+
+void measure_fluid(Container * source, int NumSplit, int piecesToDest, Container * Dest, bool ensureMeasurement = false)
+{
+	if(NumSplit < 2)
+		return;
 }
 
 

@@ -23,15 +23,15 @@ enum MIX_TYPE{MIX_NOT_SPECIFIED};
 
 
 
-class BioOperation
+struct BioOperation
 {
-private:
+public:
 	int _ID;
 	std::vector<BioOperation*> _parents;
 	std::vector<BioOperation*> _children;
 
 	OPERATION_TYPE _opType;
-	Volume* _volume;
+	Volume _volume;
 	Time* _time;
 	Temperature* _temp;
 	Fluid* _fluid;
@@ -41,43 +41,45 @@ private:
 	std::string* _outputName;
 	int _numDrops;
 	Volume* _destinationVolume;
-public:
+
 
 	BioOperation(int id)
-: _ID(id), _opType(OPERATION_NOT_SPECIFED), _volume(NULL), _time(NULL), _temp(NULL), _fluid(NULL), _detectType(DETECT_NOT_SPECIFIED), _mixType(MIX_NOT_SPECIFIED), _outputName(NULL), _numDrops(-1), _destinationVolume(NULL)
+: _ID(id), _opType(OPERATION_NOT_SPECIFED), _volume(), _time(NULL), _temp(NULL), _fluid(NULL), _detectType(DETECT_NOT_SPECIFIED), _mixType(MIX_NOT_SPECIFIED), _outputName(NULL), _numDrops(-1), _destinationVolume(NULL)
 {}
 
-	BioOperation(int id, OPERATION_TYPE op, Volume* v, Fluid* f, Time* t = new Time()) //Dispense Operation.
+	BioOperation(int id, OPERATION_TYPE op, Volume v, Fluid* f, Time* t = new Time()) //Dispense Operation.
 	: _ID(id), _opType(op), _volume(v), _time(t), _temp(NULL), _fluid(f), _detectType(DETECT_NOT_SPECIFIED), _mixType(MIX_NOT_SPECIFIED), _outputName(NULL), _numDrops(-1), _destinationVolume(NULL)
 	{}
 
 	BioOperation(int id, OPERATION_TYPE op, Fluid* f, Time* t = new Time()) //Dispense Operation.
-	: _ID(id), _opType(op), _volume(NULL), _time(t), _temp(NULL), _fluid(f), _detectType(DETECT_NOT_SPECIFIED), _mixType(MIX_NOT_SPECIFIED), _outputName(NULL), _numDrops(-1), _destinationVolume(NULL)
+	: _ID(id), _opType(op), _volume(), _time(t), _temp(NULL), _fluid(f), _detectType(DETECT_NOT_SPECIFIED), _mixType(MIX_NOT_SPECIFIED), _outputName(NULL), _numDrops(-1), _destinationVolume(NULL)
 	{}
 
 	BioOperation(int id, OPERATION_TYPE op, DETECT_TYPE type, Time* t = new Time()) //Detect Operation.
-	: _ID(id), _opType(op), _volume(NULL), _time(t), _temp(NULL), _fluid(NULL), _detectType(type), _mixType(MIX_NOT_SPECIFIED), _outputName(NULL), _numDrops(-1), _destinationVolume(NULL)
+	: _ID(id), _opType(op), _volume(), _time(t), _temp(NULL), _fluid(NULL), _detectType(type), _mixType(MIX_NOT_SPECIFIED), _outputName(NULL), _numDrops(-1), _destinationVolume(NULL)
 	{}
 
 	BioOperation(int id, OPERATION_TYPE op, Temperature* temp, Time* t = new Time()) //Heat/Cool/Store
-	:_ID(id), _opType(op), _volume(NULL), _time(NULL), _temp(temp), _fluid(NULL), _detectType(DETECT_NOT_SPECIFIED), _mixType(MIX_NOT_SPECIFIED), _outputName(NULL), _numDrops(-1), _destinationVolume(NULL)
+	:_ID(id), _opType(op), _volume(), _time(NULL), _temp(temp), _fluid(NULL), _detectType(DETECT_NOT_SPECIFIED), _mixType(MIX_NOT_SPECIFIED), _outputName(NULL), _numDrops(-1), _destinationVolume(NULL)
 	{}
 
 	BioOperation(int id, OPERATION_TYPE op, MIX_TYPE mix, Time* t = new Time()) // Mix Operation
-	:_ID(id), _opType(op), _volume(NULL), _time(t), _temp(NULL), _fluid(NULL), _detectType(DETECT_NOT_SPECIFIED), _mixType(mix), _outputName(NULL), _numDrops(-1), _destinationVolume(NULL)
+	:_ID(id), _opType(op), _volume(), _time(t), _temp(NULL), _fluid(NULL), _detectType(DETECT_NOT_SPECIFIED), _mixType(mix), _outputName(NULL), _numDrops(-1), _destinationVolume(NULL)
 	{}
 
 	BioOperation(int id, OPERATION_TYPE op, int numDrops, Time* t = new Time()) // Split Digital
-	:_ID(id), _opType(op), _volume(NULL), _time(t), _temp(NULL), _fluid(NULL), _detectType(DETECT_NOT_SPECIFIED), _mixType(MIX_NOT_SPECIFIED), _outputName(NULL), _numDrops(numDrops), _destinationVolume(NULL)
+	:_ID(id), _opType(op), _volume(), _time(t), _temp(NULL), _fluid(NULL), _detectType(DETECT_NOT_SPECIFIED), _mixType(MIX_NOT_SPECIFIED), _outputName(NULL), _numDrops(numDrops), _destinationVolume(NULL)
 	{}
 
 	BioOperation(int id, OPERATION_TYPE op, Volume* destinationVol, Time* t = new Time()) //Split Continuous Flow
-	:_ID(id), _opType(op), _volume(NULL), _time(t), _temp(NULL), _fluid(NULL), _detectType(DETECT_NOT_SPECIFIED), _mixType(MIX_NOT_SPECIFIED), _outputName(NULL), _numDrops(-1), _destinationVolume(destinationVol)
+	:_ID(id), _opType(op), _volume(), _time(t), _temp(NULL), _fluid(NULL), _detectType(DETECT_NOT_SPECIFIED), _mixType(MIX_NOT_SPECIFIED), _outputName(NULL), _numDrops(-1), _destinationVolume(destinationVol)
 	{}
 
 	BioOperation(int id, OPERATION_TYPE op, std::string outputDest, Time* t = new Time()) //Output/waste
-	:_ID(id), _opType(op), _volume(NULL), _time(t), _temp(NULL), _fluid(NULL), _detectType(DETECT_NOT_SPECIFIED), _mixType(MIX_NOT_SPECIFIED), _outputName(new std::string(outputDest)), _numDrops(-1), _destinationVolume(NULL)
+	:_ID(id), _opType(op), _volume(), _time(t), _temp(NULL), _fluid(NULL), _detectType(DETECT_NOT_SPECIFIED), _mixType(MIX_NOT_SPECIFIED), _outputName(new std::string(outputDest)), _numDrops(-1), _destinationVolume(NULL)
 	{}
+
+
 
 	std::string Name()
 	{

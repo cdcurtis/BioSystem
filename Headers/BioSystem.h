@@ -78,6 +78,15 @@ class BioSystem
 	std::vector<Fluid*> _fluids;
 
 
+	//Helper functions
+
+	void ClearContainerOpList(Container *);
+	void AddOpToContainer(BioOperation* , Container * );
+	void BioGraphMaintance(BioOperation *);
+	void SetOpsParent(BioOperation *, Container * );
+
+	void TransferOperation(Container* source, Container* destination, bool warning = false);
+
 public:
 	//Debug Tools
 	void PrintLeveledProtocol();
@@ -93,6 +102,8 @@ public:
 		list_fluid_no = list_container_no = 0;
 		start_protocol(name);
 	}
+
+
 
 
 
@@ -289,7 +300,7 @@ public:
 	 */
 	Fluid * new_fluid (std::string name, std::string state, float temp, Volume volume1);
 
-	Fluid new_operation(char* name);
+	//Fluid new_operation(char* name);
 
 //	void store_container_names(int i,char* name);
 
@@ -381,21 +392,19 @@ public:
 	\sa measure_solid() and measure_prop
 	 */
 	void measure_fluid(Fluid* fluid1, Volume volume1, Container* container1);
-	//! Measures out a specified volume of contents of container \c con into another container, \c container1.
+	//! Measures out a specified volume of contents of container \c source into another container, \c destination.
 	/*!
-	\param con the container whose contents have to be measured out.
+	\param source the container whose contents have to be measured out.
 	\param volume1 the volume of \c con 's contents required.
-	\param container1 the destination container of the measured contents of \c con.
+	\param dsetination the destination container of the measured contents of \c con.
 	\par Example:
 	\code measure_fluid(eppendorf1, vol(1, ML), tube1);\endcode
 	\par Output:
 	\htmlonly Measure out <b><font color=#357EC7>1 ml</font></b> of <font color=#357EC7>(eppendorf1.contents.name)</font> into (tube1.name).\endhtmlonly
 	\sa measure_solid() and measure_prop
 	 */
-	void measure_fluid(Container& con, Volume volume1, Container& container1, bool ensureMeasurement);
-	void measure_fluid(Container& source, int NumSplit, int piecesToDest, Container& Dest, bool ensureMeasurement);
-
-
+	void measure_fluid(Container * source, Volume volume1, Container* destination, bool ensureMeasurement = false);
+	void measure_fluid(Container * source, int NumSplit, int piecesToDest, Container * Dest, bool ensureMeasurement = false);
 };
 
 
