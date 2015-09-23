@@ -15,6 +15,7 @@
 
 namespace BioCoder
 {
+
 void BioSystem :: ClearContainerOpList(Container * c)
 {
 	c->_instructionStack.clear();
@@ -75,6 +76,176 @@ void BioSystem :: PrintLeveledProtocol()
 
 
 
+void BioSystem::TransferMethodHelper(Container * source, Container * destination, std::string transferWording)
+{
+	this->TransferOperation(source, destination,true);
+
+	if(source->contents ==NULL)
+	{
+		Fluid* f = this->new_fluid("temp");
+		source->contents = f;
+	}
+
+	if (source->volume == 0)
+		fprintf(fp, "<font color = red>Warning: You are out of %s! Please make sure you have enough before carrying on with the protocol.<br></font>", source->name.c_str());
+	if (usage_list_containers[source->usage_index]->name == source->name)
+		usage_list_containers[source->usage_index]->used = 1;
+	else
+	{
+		source->used = 1;
+		usage_list_containers[list_container_no] = source;
+		source->usage_index = list_container_no;
+		list_container_no++;
+	}
+	if (usage_list_containers[destination->usage_index]->name == destination->name)
+		usage_list_containers[destination->usage_index]->used = 1;
+	else
+	{
+		destination->used = 1;
+		usage_list_containers[list_container_no] = destination;
+		destination->usage_index = list_container_no;
+		list_container_no++;
+	}
+	if (first == 1)
+	{
+		prev_container = destination->name;
+		if (destination->contents == NULL || destination->contents->new_name == "")
+		{
+			if(source->contents !=NULL && source->contents->state == "")
+				fprintf(fp, "%s %s into %s.<br>",transferWording.c_str(), source->contents->new_name.c_str(), destination->name.c_str());
+			else
+				fprintf(fp, "%s <a href=\"#%s\" ><font color=#357EC7>%s</font></a> into %s.<br>",transferWording.c_str(), source->name.c_str(), source->name.c_str(), destination->name.c_str());
+			first = 0;
+			prev_cont++;
+		}
+		else
+		{
+			if(source->contents!= NULL && destination->contents != NULL && source->contents->state == "")
+				fprintf(fp, "%s %s into %s.<br>",transferWording.c_str(), source->contents->new_name.c_str(), destination->contents->new_name.c_str());
+			else
+				fprintf(fp, "%s <a href=\"#%s\" ><font color=#357EC7>%s</font></a> into %s.<br>",transferWording.c_str(), source->name.c_str(), source->name.c_str(), destination->name.c_str());
+			first = 0;
+			prev_cont++;
+		}
+	}
+	else if (prev_cont == 1)
+	{
+		prev_container = destination->name;
+		if( source->contents!= NULL && source->contents->state == "")
+			fprintf(fp, "%s %s into %s.<br>", transferWording.c_str(), source->contents->new_name.c_str(), destination->name.c_str());
+		else
+			fprintf(fp, "%s <a href=\"#%s\" ><font color=#357EC7>%s</font></a> into %s.<br>",transferWording.c_str() , source->name.c_str(), source->name.c_str(), source->name.c_str());
+		prev_cont++;
+	}
+	else if(prev_container == destination->name)
+	{
+		fprintf(fp, "Add <font color=#357EC7>%s</font> to %s.<br>", source->contents->new_name.c_str(), destination->contents->new_name.c_str());
+		prev_container = destination->name;
+	}
+	else if(source->contents!= NULL && destination->contents != NULL && source->contents->state == "")
+	{
+		fprintf(fp, "%s %s into %s.<br>", transferWording.c_str(), source->contents->new_name.c_str(), destination->name.c_str());
+		prev_container = destination->name;
+	}
+	else
+	{
+		fprintf(fp, "%s <a href=\"#%s\" ><font color=#357EC7>%s</font></a> into %s.<br>",transferWording.c_str(), source->contents->new_name.c_str(), source->contents->new_name.c_str(), destination->name.c_str());
+		prev_container = destination->name;
+	}
+	source->contents->container = destination->id;
+	//proSteps.addToMixtureList(container,container1);
+	destination->contents = source->contents;
+	destination->volume = destination->volume + source->volume;
+	source->volume=0;
+	//	container.tLinkName.clear();
+
+}
+
+void BioSystem::MixHelper(Container* container, MIX_TYPE mixtype, EXPERIMENT_EVENT event, Time time, int numInverting)
+{
+	std::string type;
+	switch(mixtype)
+	{
+	case TAP:
+		if(time.GetTimeUnits() == TIME_NOT_SPECIFIED)
+			fprintf(fp, "Gently tap the mixture for a few secs.<br>");
+		else
+		{
+			fprintf(fp, "Gently tap the mixture for ");
+			time.display_time(fp,option_no,options_flag,total_time_required);
+			fprintf(fp, " .<br>");
+		}
+		type = "Tapping";
+		break;
+	case STIR:
+		if(time.GetTimeUnits() == TIME_NOT_SPECIFIED)
+			fprintf(fp, "Stir the mixture for a few secs.<br>");
+		else
+		{
+			fprintf(fp, "Stir the mixture for ");
+			time.display_time(fp,option_no,options_flag,total_time_required);
+			fprintf(fp, " .<br>");
+		}
+		type = "Stirring";
+		break;
+	case INVERT:
+		if(time.GetTimeUnits() == TIME_NOT_SPECIFIED)
+		{
+			fprintf(fp, "Close the tube tightly and gently mix the contents by inverting the tube.<br>");
+			if(numInverting != -1)
+				fprintf(fp,"<b><font color=#357EC7>%d times</font></b>.", numInverting);
+			fprintf(fp, "<br>");
+		}
+		else
+		{
+			fprintf(fp, "Close the tube tightly and invert the tube ");
+			time.display_time(fp,option_no,options_flag,total_time_required);
+			fprintf(fp, " times.<br>");
+		}
+		type = "Inverting";
+		break;
+	case VORTEX:
+		if(time.GetTimeUnits() == TIME_NOT_SPECIFIED)
+			fprintf(fp, "Vortex the mixture for a few secs.<br>");
+		else
+		{
+			fprintf(fp, "Vortex the mixture for ");
+			time.display_time(fp,option_no,options_flag,total_time_required);
+			fprintf(fp, " .<br>");
+		}
+		type = "Vortexing";
+		break;
+	case RESUSPEND:fprintf(fp, "Resuspend pellet by vortexing by shaking vigorously.<br>");
+	type = "Resuspending";
+	break;
+	case DISSOLVE:fprintf(fp, "Dissolve the pellet in the solution.<br>");
+	type = "Dissolving";
+	break;
+	case PIPET:fprintf(fp, "Mix solution by pipetting up and down several times.<br>");
+	type = "Pipetting";
+	break;
+	default: fprintf(fp, "Invalid entry.<br>");
+	type = "";
+	}
+
+	switch(event)
+	{
+	case PPT_STOPS_STICKING:
+		fprintf(fp, "Close the tube tightly and gently mix the contents by inverting the tube until precipitate stops sticking to walls of the tube.<br>");
+		break;
+	case PELLET_DISLODGES:
+		fprintf(fp, "Gently mix the contents of the tube until the pellet dislodges.<br>");
+		break;
+	default:
+		break;
+	}
+
+	BioOperation * mix = new BioOperation(this->_opNum++, MIX, mixtype);
+	this->SetOpsParent(mix,container);
+	this->BioGraphMaintance(mix);
+	this->AddOpToContainer(mix, container);
+
+}
 
 void BioSystem :: start_protocol(std::string name)
 {	//BioCoder Legacy
@@ -520,89 +691,7 @@ void BioSystem :: measure_fluid(Fluid *fluid1, Volume volume1, Container* contai
 
 void BioSystem::measure_fluid(Container * source, Container * destination) // Transfer OPERATION
 {
-
-
-	this->TransferOperation(source, destination,true);
-
-
-	if(source->contents ==NULL)
-	{
-		Fluid* f = this->new_fluid("temp");
-		source->contents = f;
-	}
-
-	if (source->volume == 0)
-		fprintf(fp, "<font color = red>Warning: You are out of %s! Please make sure you have enough before carrying on with the protocol.<br></font>", source->name.c_str());
-	if (usage_list_containers[source->usage_index]->name == source->name)
-		usage_list_containers[source->usage_index]->used = 1;
-	else
-	{
-		source->used = 1;
-		usage_list_containers[list_container_no] = source;
-		source->usage_index = list_container_no;
-		list_container_no++;
-	}
-	if (usage_list_containers[destination->usage_index]->name == destination->name)
-		usage_list_containers[destination->usage_index]->used = 1;
-	else
-	{
-		destination->used = 1;
-		usage_list_containers[list_container_no] = destination;
-		destination->usage_index = list_container_no;
-		list_container_no++;
-	}
-	if (first == 1)
-	{
-		prev_container = destination->name;
-		if (destination->contents == NULL || destination->contents->new_name == "")
-		{
-			if(source->contents !=NULL && source->contents->state == "")
-				fprintf(fp, "Measure out %s into %s.<br>", source->contents->new_name.c_str(), destination->name.c_str());
-			else
-				fprintf(fp, "Measure out <a href=\"#%s\" ><font color=#357EC7>%s</font></a> into %s.<br>", source->name.c_str(), source->name.c_str(), destination->name.c_str());
-			first = 0;
-			prev_cont++;
-		}
-		else
-		{
-			if(source->contents!= NULL && destination->contents != NULL && source->contents->state == "")
-				fprintf(fp, "Measure out %s into %s.<br>", source->contents->new_name.c_str(), destination->contents->new_name.c_str());
-			else
-				fprintf(fp, "Measure out <a href=\"#%s\" ><font color=#357EC7>%s</font></a> into %s.<br>", source->name.c_str(), source->name.c_str(), destination->name.c_str());
-			first = 0;
-			prev_cont++;
-		}
-	}
-	else if (prev_cont == 1)
-	{
-		prev_container = destination->name;
-		if( source->contents!= NULL && source->contents->state == "")
-			fprintf(fp, "Measure out %s into %s.<br>", source->contents->new_name.c_str(), destination->name.c_str());
-		else
-			fprintf(fp, "Measure out <a href=\"#%s\" ><font color=#357EC7>%s</font></a> into %s.<br>", source->name.c_str(), source->name.c_str(), source->name.c_str());
-		prev_cont++;
-	}
-	else if(prev_container == destination->name)
-	{
-		fprintf(fp, "Add <font color=#357EC7>%s</font> to %s.<br>", source->contents->new_name.c_str(), destination->contents->new_name.c_str());
-		prev_container = destination->name;
-	}
-	else if(source->contents!= NULL && destination->contents != NULL && source->contents->state == "")
-	{
-		fprintf(fp, "Measure out %s into %s.<br>", source->contents->new_name.c_str(), destination->name.c_str());
-		prev_container = destination->name;
-	}
-	else
-	{
-		fprintf(fp, "Measure out <a href=\"#%s\" ><font color=#357EC7>%s</font></a> into %s.<br>", source->contents->new_name.c_str(), source->contents->new_name.c_str(), destination->name.c_str());
-		prev_container = destination->name;
-	}
-	source->contents->container = destination->id;
-	//proSteps.addToMixtureList(container,container1);
-	destination->contents = source->contents;
-	destination->volume = destination->volume + source->volume;
-	source->volume=0;
-//	container.tLinkName.clear();
+	TransferMethodHelper(source, destination, "Measure out");
 }
 
 
@@ -713,13 +802,83 @@ void BioSystem :: measure_fluid(Container* source, Volume volume1, Container* de
 	source->volume-= volume1.GetValue(NANO_LITER);
 }
 
-void measure_fluid(Container * source, int NumSplit, int piecesToDest, Container * Dest, bool ensureMeasurement = false)
-{
+void BioSystem:: measure_fluid(Container * source, int NumSplit, int piecesToDest, Container * Dest, bool ensureMeasurement)
+{ //TODO:: Digital Microfluidics Split.
 	if(NumSplit < 2)
 		return;
 }
 
+void BioSystem :: set_temp(Container* container, double temp, TEMPERATURE_UNIT tempUnit)
+{
+	Temperature temperature(tempUnit, temp);
+	BioOperation * heat = new BioOperation(this->_opNum++,HEAT, temperature);
+	this->SetOpsParent(heat,container);
+	this->BioGraphMaintance(heat);
+	this->AddOpToContainer(heat, container);
 
+
+	if (temp >= 35)
+		fprintf(fp, "Pre-heat %s in a water bath set at <b><font color=#357EC7>65%cC</font></b>.<br>", container->contents->new_name.c_str(), 0x00B0);
+	else
+		fprintf(fp, "Set the temperature of %s to <b><font color=#357EC7>%g%cC</font></b>.<br>", container->contents->new_name.c_str(), temp, 0x00B0);
 
 }
 
+void BioSystem::transfer(Container * source, Container * destination)
+{
+	this->TransferMethodHelper(source, destination, "Transfer");
+}
+void BioSystem::discard(Container* container, std::string outputSink)
+{
+	BioOperation * discard = new BioOperation(this->_opNum++, WASTE, outputSink);
+	this->SetOpsParent(discard,container);
+	this->BioGraphMaintance(discard);
+	this->AddOpToContainer(discard, container);
+
+	fprintf(fp, "Discard %s.<br>", container->contents->new_name.c_str());
+	container->volume = 0;
+}
+
+void BioSystem::tap(Container * container)
+{
+	return this->MixHelper(container, TAP);
+}
+
+void BioSystem::tap (Container* container, enum EXPERIMENT_EVENT event1)
+{
+	return this->MixHelper(container, TAP, event1);
+}
+
+void BioSystem::tap(Container* container, Time time)
+{
+	return this->MixHelper(container, TAP, EVENT_NOT_SPECIFIED, time);
+}
+
+void BioSystem::stir(Container* container)
+{
+	return this->MixHelper(container, STIR);
+}
+
+void BioSystem::stir(Container* container, Time time)
+{
+	return this->MixHelper(container, STIR, EVENT_NOT_SPECIFIED, time);
+}
+
+void BioSystem::invert(Container* container1)
+{
+	return this->MixHelper(container1, INVERT);
+}
+
+void BioSystem::invert(Container* container1, int times)
+{
+	return this->MixHelper(container1, INVERT, EVENT_NOT_SPECIFIED, Time(), times);
+}
+
+void BioSystem::invert(Container* container1, enum EXPERIMENT_EVENT event1)
+{
+	return this->MixHelper(container1, INVERT, event1);
+}
+
+
+
+} // Namespace BioCoder

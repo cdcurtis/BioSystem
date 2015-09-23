@@ -87,6 +87,8 @@ class BioSystem
 
 	void TransferOperation(Container* source, Container* destination, bool warning = false);
 
+	void TransferMethodHelper (Container * source, Container * destination, std:: string transferWording);
+	void MixHelper(Container* container, MIX_TYPE mixtype, EXPERIMENT_EVENT event = EVENT_NOT_SPECIFIED, Time time = Time(), int =-1);
 public:
 	//Debug Tools
 	void PrintLeveledProtocol();
@@ -302,7 +304,7 @@ public:
 
 	//Fluid new_operation(char* name);
 
-//	void store_container_names(int i,char* name);
+	//	void store_container_names(int i,char* name);
 
 	//! Used to declare a new container of the type specified by \c cont_id.
 	/*!
@@ -375,7 +377,7 @@ public:
 	\htmlonly Measure out <b><font color=#357EC7>1 ml</font></b> of <font color=#357EC7>(solution1.name)</font>.\endhtmlonly
 	\sa measure_solid() and measure_prop()
 	 */
-//	void measure_fluid(Fluid& fluid1, Volume volume1);
+	//	void measure_fluid(Fluid& fluid1, Volume volume1);
 
 
 	//! Measures out a specified volume of \c fluid1 into the given container.
@@ -405,6 +407,127 @@ public:
 	 */
 	void measure_fluid(Container * source, Volume volume1, Container* destination, bool ensureMeasurement = false);
 	void measure_fluid(Container * source, int NumSplit, int piecesToDest, Container * Dest, bool ensureMeasurement = false);
+	//! Sets the temperature of the contents of the given container as specified.
+	/*!
+		\param container1 the container whose contents have to be set to a particular temperature.
+		\param temp the temperature setting.
+		\par Example:
+		\code set_temp(eppendorf1, 37); \endcode
+		\par Output:
+		\htmlonly Set the temperature of (eppendorf1.contents.name) to <b><font color=#357EC7>37 C</font></b>. \endhtmlonly
+		\sa store(), store_for(), store_until(), incubate()
+	 */
+	void set_temp(Container*, double temp, TEMPERATURE_UNIT temp_unit = FAHRENHEIT);
+
+
+
+	//! Transfers the contents of a container \c container1 to another specified container \c con2.
+	/*!
+		\param container1 the container whose contents have to be transferred.
+		\param con2 the container to which \c container1 's contents have to be transferred.
+		\par Example:
+		\code transfer(tube1, tube2);\endcode
+		\par Output:
+		\htmlonly Transfer (tube1.contents.name) into (tube2.name). \endhtmlonly
+		\sa combine_and_mix()
+	 */
+	void transfer(Container* source, Container* destination);
+
+	//! Discards the contents of the specified container.
+	/*!
+		\par Example:
+		\code discard(epepndorf1);\endcode
+		\par Output:
+		\htmlonly Discard (eppendorf1.contents.name). \endhtmlonly
+		\param container1 the container whose contents have to be discarded.
+	 */
+	void discard(Container* container, std::string outputSink);
+	//! Mixes the contents of the given container by tapping the container for a few seconds.
+	/*!
+	\param container1 the container whose contents have to be mixed.
+	\par Example:
+	\code tap(eppendorf);\endcode
+	\par Output:
+	\htmlonly Gently tap the mixture for a few secs. \endhtmlonly
+	\sa stir(), invert(), vortex(), dissolve(), resuspend(), pipet() and combine_and_mix()
+	 */
+	void tap(Container * container);
+	//! Mixes the contents of the given container by tapping until the specified result is obtained.
+	/*!
+		\param container1 the container whose contents have to be mixed.
+		\param event1 the event until which the container has to be mixed. (See enum until)
+		\par Example:
+		\code tap(eppendorf, PELLET_DISLODGES); \endcode
+		\par Output:
+		\html only Close the tube tightly and gently tap the mixture for a few secs until the pellet dislodges. \endhtmlonly
+		\sa stir(), invert(), vortex(), dissolve(), resuspend(), pipet(), combine_and_mix() and enum until
+	 */
+	void tap(Container* container1, enum EXPERIMENT_EVENT event1);
+
+	//! Mixes the contents of the given container by tapping the container for the specified duration of time.
+	/*!
+	\param container1 the container whose contents have to be mixed.
+	\param time1 the duration of tapping.
+	\par Example:
+	\code tap(eppendorf, time(10, SECS));\endcode
+	\par Output:
+	\htmlonly Gently tap the mixture for <b><font color=#357EC7>10 secs</font></b>. \endhtmlonly
+	\sa invert(), vortex(), dissolve(), resuspend(), pipet() and combine_and_mix()
+	 */
+	 void tap(Container* container1, Time time1);
+	 //! Mixes the contents of the given container by stirring the container for a few seconds.
+	/*!
+	\param container1 the container whose contents have to be mixed.
+	\par Example:
+	\code stir(eppendorf);\endcode
+	\par Output:
+	\htmlonly Gently stir the mixture for a few secs. \endhtmlonly
+	\sa tap(), invert(), vortex(), dissolve(), resuspend(), pipet() and combine_and_mix()
+	 */
+	void stir(Container* container);
+	//! Mixes the contents of the given container by stirring the container for the specified duration of time.
+	/*!
+	\param container1 the container whose contents have to be mixed.
+	\param time1 the duration of tapping.
+	\par Example:
+	\code stir(eppendorf, time(10, SECS));\endcode
+	\par Output:
+	\htmlonly Gently stir the mixture for <b><font color=#357EC7>10 secs</font></b>. \endhtmlonly
+	\sa tap(), invert(), vortex(), dissolve(), resuspend(), pipet() and combine_and_mix()
+	 */
+	void stir(Container* container, Time time1);
+	//! Mixes the contents of the given container by inverting the container for a few seconds.
+	/*!
+	\param container1 the container whose contents have to be mixed.
+	\par Example:
+	\code invert(eppendorf);\endcode
+	\par Output:
+	\htmlonly Close the tube tightly and gently mix the contents by inverting the tube. \endhtmlonly
+	\sa tap(), stir(), vortex(), dissolve(), resuspend(), pipet() and combine_and_mix()
+	 */
+	void invert(Container* container1);
+	//! Mixes the contents of the given container by inverting it for the specified number of times.
+	/*!
+	\param container1 the container whose contents have to be mixed.
+	\param times the number of times that the container has to be inverted.
+	\par Example:
+	\code invert(eppendorf, 5);\endcode
+	\par Output:
+	\htmlonly Close the tube tightly and gently mix the contents by inverting the tube <b><font color=#357EC7>5 times</font></b>. \endhtmlonly
+	\sa tap(), stir(), vortex(), dissolve(), resuspend(), pipet() and combine_and_mix()
+	 */
+	void invert(Container* container1, int times);
+	//! Mixes the contents of the given container by inverting it until the specified result is obtained.
+	/*!
+	\param container1 the container whose contents have to be mixed.
+	\param event1 the event until which the container has to be mixed. (See enum until)
+	\par Example:
+	\code invert(eppendorf, PPT_STOPS_STICKING);\endcode
+	\par Output:
+	\htmlonly Close the tube tightly and gently mix the contents by inverting the tube until the precipitate stops sticking to the walls of the tube. \endhtmlonly
+	\sa tap(), stir(), vortex(), dissolve(), resuspend(), pipet(), combine_and_mix() and enum until
+	 */
+	void invert(Container* container1, enum EXPERIMENT_EVENT event1);
 };
 
 
