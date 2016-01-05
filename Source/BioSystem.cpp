@@ -63,18 +63,15 @@ void BioSystem :: TransferOperation(Container* source, Container* destination, b
 	source->_instructionStack.clear();
 }
 
-void BioSystem :: PrintLeveledProtocol()
+
+void BioSystem :: check_container(Container* container1)
 {
-	for(unsigned int level = 0; level < _userDefinedLevelTree.size(); ++level)
+	if ((first == 1) || (prev_cont == 1)||(prev_container != container1->name))
 	{
-		std::cout << "Level: " << level << "\n\t";
-		for(unsigned int operation = 0; operation < _userDefinedLevelTree[level].size(); ++operation)
-			std::cout<<_userDefinedLevelTree[level][operation]->Name() << " ";
-		std::cout<<std::endl;
+		prev_container = container1->name;
+		fprintf(fp, "%s", container1->name.c_str());
 	}
 }
-
-
 
 void BioSystem::TransferMethodHelper(Container * source, Container * destination, std::string transferWording)
 {
@@ -243,8 +240,32 @@ void BioSystem::MixHelper(Container* container, MIX_TYPE mixtype, EXPERIMENT_EVE
 	BioOperation * mix = new BioOperation(this->_opNum++, MIX, mixtype);
 	this->SetOpsParent(mix,container);
 	this->BioGraphMaintance(mix);
+	this->ClearContainerOpList(container);
 	this->AddOpToContainer(mix, container);
 
+}
+
+
+
+void BioSystem :: PrintLeveledProtocol()
+{
+	for(unsigned int level = 0; level < _userDefinedLevelTree.size(); ++level)
+	{
+		std::cout << "Level: " << level << "\n\t";
+		for(unsigned int operation = 0; operation < _userDefinedLevelTree[level].size(); ++operation)
+			std::cout<<_userDefinedLevelTree[level][operation]->Name() << " ";
+		std::cout<<std::endl;
+	}
+}
+
+void BioSystem :: PrintTree()
+{
+	for(std::vector< BioOperation*> op_vector: this->_userDefinedLevelTree)
+	{
+		for(BioOperation* op: op_vector)
+			for (BioOperation* childOp: op->_children)
+				std::cout << op->_ID << "->" << childOp->_ID <<std::endl;
+	}
 }
 
 void BioSystem :: start_protocol(std::string name)
@@ -328,6 +349,7 @@ void BioSystem :: next_sub_step()
 }
 void BioSystem :: end_protocol()
 {
+	//TODO:: rewrite the Collect Output.
 	//proSteps->collectOutput();
 	//int i;
 	//export_graph(filename.c_str());
@@ -879,6 +901,216 @@ void BioSystem::invert(Container* container1, enum EXPERIMENT_EVENT event1)
 	return this->MixHelper(container1, INVERT, event1);
 }
 
+void BioSystem::vortex(Container* container1)
+{
+	return this->MixHelper(container1, VORTEX);
+}
+
+void BioSystem::vortex(Container* container1, Time time1)
+{
+	return this->MixHelper(container1, VORTEX, EVENT_NOT_SPECIFIED, time1);
+}
+
+void BioSystem::resuspend(Container* container1)
+{
+	return this->MixHelper(container1, RESUSPEND);
+}
+void BioSystem::dissolve (Container* container1)
+{
+	return this->MixHelper(container1, DISSOLVE);
+}
+void BioSystem::pipet (Container* container1)
+{
+	return this->MixHelper(container1, PIPET);
+}
+
+void BioSystem::wait (Container* container, Time time1)
+{
+
+	BioOperation * store = new BioOperation(this->_opNum++, STORE, time1);
+	this->SetOpsParent(store,container);
+	this->BioGraphMaintance(store);
+	this->ClearContainerOpList(container);
+	this->AddOpToContainer(store, container);
+
+	fprintf(fp, "Keep %s aside for ", container->contents->new_name.c_str());
+	time1.display_time(fp,option_no,options_flag,total_time_required);
+	fprintf(fp, ".<br>");
+}
+
+void BioSystem::combine_and_mix (MIX_TYPE mix, std::vector<Container*> containerList)
+{
+	return this->combine_and_mix(mix, Time(), containerList);
+}
+
+void BioSystem::combine_and_mix (MIX_TYPE mix, Time time1, std::vector<Container*> containerList)
+{
+	if (containerList.size()==0) {
+		std::cerr<<"Error: tying to combine empty container List.\n";
+		return;
+	}
+	Container * dest = containerList.at(0);
+
+	for (unsigned int i = 1; i < containerList.size(); ++i) {
+		this->TransferMethodHelper(containerList.at(i), dest, "Combine");
+	}
+
+	this->MixHelper(dest,mix,EVENT_NOT_SPECIFIED,time1);
+}
+
+void BioSystem:: store_for(Container* container, float temp, Time time1)
+{
+	BioOperation* operation;
+	if(temp == ON_ICE)
+	{
+		operation = new BioOperation(this->_opNum++,COOL,temp,time1);
+		fprintf(fp, "Store ");
+		check_container(container);
+		fprintf(fp, " <b><font color=#357EC7>on ice</font></b> for ");
+	}
+	else if(temp == BOILING_WATER)
+	{
+		operation = new BioOperation(this->_opNum++,HEAT,temp,time1);
+		fprintf(fp, "Immerse ");
+		check_container(container);
+		fprintf(fp, " in boiling water for ");
+	}
+	else if (temp == ROOM_TEMPERATURE)
+	{
+		operation = new BioOperation(this->_opNum++,HEAT,temp,time1);
+		fprintf(fp, "Store ");
+		check_container(container);
+		fprintf(fp, " at <b><font color=#357EC7><b><font color=#357EC7>room temperature</font></b></font></b> for ");
+	}
+	else
+	{
+		if (temp > ROOM_TEMPERATURE)
+			operation = new BioOperation(this->_opNum++,HEAT,temp,time1);
+		else
+			operation = new BioOperation(this->_opNum++,COOL,temp,time1);
+
+		fprintf(fp, "Store ");
+		check_container(container);
+		fprintf(fp, " at <b><font color=#357EC7>%g%cC</font></b> for ", temp, 0x00B0);
+	}
+
+	if(time1.GetTimeUnits() == TIME_NOT_SPECIFIED)
+		time1.display_time(fp,option_no,options_flag,total_time_required);
+
+	this->SetOpsParent(operation,container);
+	this->BioGraphMaintance(operation);
+	this->ClearContainerOpList(container);
+	this->AddOpToContainer(operation, container);
+
+}
+
+void BioSystem:: store_for(Container* container, float temp, Time time1, STORAGE_FUNCTION function)
+{
+
+	if(function == 1)
+	{
+		fprintf(fp, "Denature ");
+		check_container(container);
+		fprintf(fp, " at <b><font color=#357EC7>%g%cC</font></b> for ", temp, 0x00B0);
+	}
+	else if (function == 2)
+	{
+		fprintf(fp, "Perform enzyme inactivation by storing ");
+		check_container(container);
+		fprintf(fp, " at <b><font color=#357EC7>%g%cC</font></b> for ", temp, 0x00B0);
+	}
+
+	if(time1.GetTimeUnits() == TIME_NOT_SPECIFIED)
+		time1.display_time(fp,option_no,options_flag,total_time_required);
+
+	BioOperation* store = new BioOperation(this->_opNum++,STORE,temp,time1);
+	this->SetOpsParent(store,container);
+	this->BioGraphMaintance(store);
+	this->ClearContainerOpList(container);
+	this->AddOpToContainer(store, container);
+
+}
+void BioSystem:: store_until(Container* container, float temp, EXPERIMENT_EVENT type)
+{
+	return this->store_until(container, temp, type, Time());
+}
+void BioSystem:: store_until(Container* container, float temp, EXPERIMENT_EVENT event, Time time1)
+{
+	switch(event)
+	{
+	case ETHANOL_EVAP:if (temp == ROOM_TEMPERATURE)
+		fprintf(fp, "Store %s at <b><font color=#357EC7>room temperature</font></b> until the ethanol has evaporated and no fluid is visible in the tube.<br>", container->contents->new_name.c_str());
+	else
+		fprintf(fp, "Store %s at <b><font color=#357EC7>%g%cC</font></b> until the ethanol has evaporated and no fluid is visible in the tube.<br>", container->contents->new_name.c_str(), temp, 0x00B0);break;
+	case OD:fprintf(fp, "Incubate %s at <b><font color=#357EC7>%g%cC</font></b> until the O.D.600 reaches 0.6.<br>", container->contents->new_name.c_str(), temp, 0x00B0);break;
+	case THAW:fprintf(fp, "Allow %s to thaw at <b><font color=#357EC7>room temperature</font></b>.<br>", container->contents->new_name.c_str());break;
+	case COOLED:fprintf(fp, "Keep %s at <b><font color=#357EC7>room temperature</font></b> until cooled.<br>", container->contents->new_name.c_str());break;
+	case COLOUR_DEVELOPS:fprintf(fp, "Wait for the colour to develop.<br>");break;
+	case THAW_ICE:fprintf(fp, "Allow %s to thaw on <b><font color=#357EC7>ice</font></b>.<br>", container->contents->new_name.c_str());break;
+	default:break;
+	}
+	if(time1.GetTimeUnits() == TIME_NOT_SPECIFIED)
+	time1.display_time(fp,option_no,options_flag,total_time_required);
+
+	BioOperation* store = new BioOperation(this->_opNum++,STORE,temp,time1);
+	this->SetOpsParent(store,container);
+	this->BioGraphMaintance(store);
+	this->ClearContainerOpList(container);
+	this->AddOpToContainer(store, container);
+
+}
+void BioSystem:: incubate(Container* container1, float temp, Time time1)
+{
+	return incubate(container1,temp,time1,-1);
+}
+void BioSystem:: incubate(Container* container1, float temp, Time time1, int rpm)
+{
+	if (rpm == -1)
+		std::cerr << "RPM not suitable for micrfluidic device. The information will not be passed along.\n";
+
+	BioOperation* operation;
+	if(temp == ROOM_TEMPERATURE)
+	{
+		operation = new BioOperation(this->_opNum++,HEAT, time1);
+		fprintf(fp, "Incubate ");
+		check_container(container1);
+		fprintf(fp," at <b><font color=#357EC7><b><font color=#357EC7>room temperature</font></b></font></b> for ");
+	}
+	else if((temp == ON_ICE)||(temp == 0))
+	{
+		operation = new BioOperation(this->_opNum++,COOL, time1);
+		fprintf(fp, "Incubate ");
+		check_container(container1);
+		fprintf(fp, " on <b><font color=#357EC7><b><font color=#357EC7>ice</font></b></font></b> for ");
+	}
+	else
+	{
+		operation = new BioOperation(this->_opNum++,HEAT, time1);
+		fprintf(fp, "Incubate ");
+		check_container(container1);
+		fprintf(fp, " at <b><font color=#357EC7>%g%cC</font></b> for ", temp, 0x00B0);
+	}
+
+	time1.display_time(fp,option_no,options_flag,total_time_required);
+	if(rpm != -1)
+		fprintf(fp, " with shaking at %d rpm.<br>", rpm);
+
+	if(incubator_no == 1)
+	{
+		equipments[equip_no] = "Incubator";
+		equip_no++;
+		incubator_no++;
+	}
+	this->SetOpsParent(operation,container1);
+	this->BioGraphMaintance(operation);
+	this->ClearContainerOpList(container1);
+	this->AddOpToContainer(operation, container1);
+}
+void BioSystem:: incubate_and_mix(Container* container1, float temp, Time time1, Time time_mix, MIX_TYPE type)
+{
+	this->incubate(container1,temp,time1);
+	this->MixHelper(container1,type, EVENT_NOT_SPECIFIED, time_mix);
+}
 
 
 } // Namespace BioCoder

@@ -30,6 +30,16 @@ int main (){
 	bioCoder.first_step();
 	bioCoder.measure_fluid(blood, tube);
 	bioCoder.measure_fluid(water, tube);
+
+	bioCoder.next_step();
+	bioCoder.tap(tube,Time(SECS, 10));
+
+	bioCoder.next_step();
+	bioCoder.wait(tube, Time(SECS,5));
+
+	bioCoder.next_step();
+	bioCoder.incubate_and_mix(tube,ROOM_TEMPERATURE,Time(SECS,10), Time(SECS,20),VORTEX);
+
 	tube->PrintOpStack();
 
 	bioCoder.end_protocol();
@@ -37,5 +47,7 @@ int main (){
 
 	bioCoder.PrintLeveledProtocol();
 
+	bioCoder.PrintTree();
+	std::cout<<"Terminated \n";
 	return 0;
 }

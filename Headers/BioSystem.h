@@ -85,6 +85,7 @@ class BioSystem
 	void BioGraphMaintance(BioOperation *);
 	void SetOpsParent(BioOperation *, Container * );
 
+	void check_container(Container* container1);
 	void TransferOperation(Container* source, Container* destination, bool warning = false);
 
 	void TransferMethodHelper (Container * source, Container * destination, std:: string transferWording);
@@ -104,11 +105,6 @@ public:
 		list_fluid_no = list_container_no = 0;
 		start_protocol(name);
 	}
-
-
-
-
-
 
 
 	//! Creates an html file with the given name and opens it for writing the protocol.
@@ -474,8 +470,8 @@ public:
 	\htmlonly Gently tap the mixture for <b><font color=#357EC7>10 secs</font></b>. \endhtmlonly
 	\sa invert(), vortex(), dissolve(), resuspend(), pipet() and combine_and_mix()
 	 */
-	 void tap(Container* container1, Time time1);
-	 //! Mixes the contents of the given container by stirring the container for a few seconds.
+	void tap(Container* container1, Time time1);
+	//! Mixes the contents of the given container by stirring the container for a few seconds.
 	/*!
 	\param container1 the container whose contents have to be mixed.
 	\par Example:
@@ -528,9 +524,206 @@ public:
 	\sa tap(), stir(), vortex(), dissolve(), resuspend(), pipet(), combine_and_mix() and enum until
 	 */
 	void invert(Container* container1, enum EXPERIMENT_EVENT event1);
+	//! Mixes the contents of the given container by vortexing the container for a few seconds.
+	/*!
+	\param container1 the container whose contents have to be mixed.
+	\par Example:
+	\code vortex(eppendorf);\endcode
+	\par Output:
+	\htmlonly Vortex the mixture for a few seconds. \endhtmlonly
+	\sa tap(), stir(), invert(), dissolve(), resuspend(), pipet() and combine_and_mix()
+	 */
+	void vortex(Container* container1);
+	//! Mixes the contents of the given container by vortexing the container for the specified duration of time.
+	/*!
+	\param container1 the container whose contents have to be mixed.
+	\param time1 the duration of vortexing.
+	\par Example:
+	\code vortex(eppendorf, time(1, MINS));\endcode
+	\par Output:
+	\htmlonly Vortex the mixture for <b><font color=#357EC7>1 min</font></b>. \endhtmlonly
+	\sa tap(), stir(), invert(), dissolve(), resuspend(), pipet() and combine_and_mix()
+	 */
+	void vortex(Container* container1, Time time1);
+	//! Resuspends the contents of the solution in tube.
+	/*!
+	\param container1 the container whose contents have to be resuspended.
+	\par Example:
+	\code resuspend(eppendorf);\endcode
+	\par Output:
+	\htmlonly Resuspend the (eppendorf.contents.name) by vortexing/shaking vigorously. \endhtmlonly
+	\sa tap(), stir(), invert(), vortex(), dissolve(), pipet() and combine_and_mix()
+	 */
+	void resuspend(Container* container1);
+	//! Dissolves the contents of the solution in tube.
+	/*!
+	\param container1 the container whose contents have to be dissolved.
+	\par Example:
+	\code dissolve(eppendorf1);\endcode
+	\par Output:
+	\htmlonly Dissolve the pellet in the solution. \endhtmlonly
+	\sa tap(), stir(), invert(), vortex(), resuspend(), pipet() and combine_and_mix()
+	 */
+	void dissolve (Container* container1);
+	//! Resuspends the contents of the solution in tube by pipetting up and down for a few seconds.
+	/*!
+	\param container1 the container whose contents have to be resuspended.
+	\par Example:
+	\code pipet(tube1);\endcode
+	\par Output:
+	\htmlonly Mix solution by pipetting up and down several times. \endhtmlonly
+	\sa tap(), stir(), invert(), vortex(), dissolve(), resuspend() and combine_and_mix()
+	 */
+	void pipet (Container* container1);
+	//! Holds the given container for the specified unit of time.
+	/*!
+	\param container1 the container whose contents have to be held.
+	\param time1 the duration for which \c container1 has to be held.
+	\par Example:
+	\code wait(tube1, time(5, MINS)); \endcode
+	\par Output:
+	\htmlonly Keep (tube1.contents.name) aside for <b><font color=#357EC7>5 mins</font></b>. \endhtmlonly
+	\sa store(), store_for(), store_until(), incubate()
+	 */
+	void wait (Container* container1, Time time1);
+	//! Combines the given list of containers' contents and mixes them with the specified setting for a few seconds.
+	/*!
+	\param type the type of mixing. (See enum mixing)
+
+	\par Example:
+	\code combine_and_mix(VORTEXING, tubeList); \endcode
+	\par Output:
+	\htmlonly Combine the (tube1.contents.name), (tube2.contents.name).
+	Vortex the mixture for a few secs. \endhtmlonly
+	\sa combine(), tap(), stir(), invert(), vortex(), resuspend(), dissolve(), pipet() and enum mixing
+	 */
+	void combine_and_mix (MIX_TYPE mix, std::vector<Container*>);
+	//! Combines the given list of containers' contents and mixes them for the specified duration of time and setting.
+	/*!
+	\param type the type of mixing. (See enum mixing)
+	\param time1 the duration of mixing.
+	\par Example:
+	\code combine_and_mix(VORTEXING, time_range(2, 3, MINS), tubeList); \endcode
+	\par Output:
+	\htmlonly Combine the (tube1.contents.name), (tube2.contents.name).
+	Vortex the mixture for <b><font color=#357EC7>2 - 3 mins</font></b>. \endhtmlonly
+	\sa combine(), tap(), stir(), invert(), vortex(), resuspend(), dissolve(), pipet() and enum mixing
+	 */
+	void combine_and_mix (MIX_TYPE mix, Time time1, std::vector<Container*> );
+	//! Stores the specified container at a given temperature and given duration of time. Combination of set_temp() and wait().
+	/*!
+	\param container1 the container whose contents have to be stored.
+	\param temp the temperature of storage.
+	\param time1 the duration of storage.
+	\par Example:
+	\code store_for(tube1, 37, min_time(5, MINS));\endcode
+	\par Output:
+	\htmlonly Store at <b><font color=#357EC7>37 c</font></b> for at most <b><font color=#357EC7>5 mins</font></b>. \endhtmlonly
+	\sa  store(), store_until() and incubate()
+	 */
+	void store_for(Container* container1, float temp, Time time1);
+	//! Stores the specified container at a given temperature and given duration of time. Combination of set_temp() and wait().
+	/*!
+	\param container1 the container whose contents have to be stored.
+	\param temp the temperature of storage.
+	\param time1 the duration of storage.
+	\param function the function being performed as a result of the store_for().
+	\par Example:
+	\code store_for(eppendorf, 80, time(30, SECS), ENZYME_INAC);\endcode
+	\par Output:
+	\htmlonly Perform enzyme inactivation by storing at <b><font color=#357EC7>80 C</font></b> for <b><font color=#357EC7>30 secs</font></b>. \endhtmlonly
+	\sa store(), store_until() and incubate()
+	 */
+	void store_for(Container* container1, float temp, Time time1, STORAGE_FUNCTION function);
+	//! Stores the specified container at a given temperature until the occurence of a specified event.
+	/*!
+	\param container1 the container whose contents have to be stored.
+	\param temp the temperature of storage.
+	\param type the event until whose occurence \c container1 has to be stored.
+	\par Example:
+	\code store_until(tube1, RT, ETHANOL_EVAP);\endcode
+	\par Output:
+	\htmlonly Store (tube1.contents.name) at <b><font color=#357EC7>room temperature</font></b> until the ethanol has evaporated and no fluid is visible in the tube.\endhtmlonly
+	\sa store(), store_for(), incubate(), and enum time_unit
+	 */
+	void store_until(Container* container1, float temp, EXPERIMENT_EVENT type);
+	//! Stores the specified container at a given temperature until the occurence of a specified event. The approximate time taken for the occurence of the event is also specified.
+	/*!
+	\param container1 the container whose contents have to be stored.
+	\param temp the temperature of storage.
+	\param type the event until whose occurence \c container1 has to be stored.
+	\param time1 the approximate time taken for the occurence of the event.
+	\par Example:
+	\code store_until(tube1, RT, ETHANOL_EVAP, time_range(10, 15, MINS));\endcode
+	\par Output:
+	\htmlonly Store (tube1.contents.name) at <b><font color=#357EC7>room temperature</font></b> until the ethanol has evaporated and no fluid is visible in the tube(~ <b><font color=#357EC7>10-15 mins</font></b>).\endhtmlonly
+	\sa store(), store_for() and incubate()
+	 */
+	void store_until(Container* container1, float temp, EXPERIMENT_EVENT type, Time time1);
+	//! Incubates the given container at the specified temperature for the specified duration of time, without shaking.
+	/*!
+	\param container1 the container whose contents need to be incubated.
+	\param temp the temperature of incubation.
+	\param time1 the duration of incubation.
+	\par Example:
+	\code incubate(eppendorf, ON_ICE, time_range(3, 5, MINS)); \endcode
+	\par Output:
+	\htmlonly Incubate <b><font color=#357EC7>on ice</font></b> for <b><font color=#357EC7>3 - 5 mins</font></b>. \endhtmlonly
+	\sa store(), store_for(), store_until() and inoculation()
+	 */
+	//! Incubates the given container at the specified temperature for the specified duration of time, without shaking.
+	/*!
+		\param container1 the container whose contents need to be incubated.
+		\param temp the temperature of incubation.
+		\param time1 the duration of incubation.
+		\par Example:
+		\code incubate(eppendorf, ON_ICE, time_range(3, 5, MINS)); \endcode
+		\par Output:
+		\htmlonly Incubate <b><font color=#357EC7>on ice</font></b> for <b><font color=#357EC7>3 - 5 mins</font></b>. \endhtmlonly
+		\sa store(), store_for(), store_until() and inoculation()
+	 */
+	void incubate(Container* container1, float temp, Time time1);
+	//! Incubates the given container at the specified temperature for the specified duration of time, with shaking at the given rpm.
+	/*!
+		\param container1 the container whose contents need to be incubated.
+		\param temp the temperature of incubation.
+		\param time1 the duration of incubation.
+		\param rpm the speed of shaking while incubating (in rpm).
+		\par Example:
+		\code incubate(flask, RT, time(3, HRS), 200); \endcode
+		\par Output:
+		\htmlonly Incubate at <b><font color=#357EC7>room temperature</font></b> for <b><font color=#357EC7>3 hrs</font></b> with shaking at <font color=#357EC7>200</font> rpm. \endhtmlonly
+		\sa store(), store_for(), store_until() and inoculation()
+	 */
+	void incubate(Container* container1, float temp, Time time1, int rpm);
+	//! Incubates the given container at the specified temperature for the specified duration of time, with shaking at the given rpm and stirring during the incubation as specified.
+	/*!
+		\param container1 the container whose contents need to be incubated.
+		\param temp the temperature of incubation.
+		\param time1 the duration of incubation.
+		\param time_mix the time intervals at which the contents of the container have to be mixed during incubation.
+		\param type the type of mixing.
+		\par Example:
+		\code incubate_and_mix(flask, RT, time(3, HRS), 200, time(10, MINS)); \endcode
+		\par Output:
+		\htmlonly Incubate at <b><font color=#357EC7>room temperature</font></b> for <b><font color=#357EC7>3 hrs</font></b> with shaking at <font color=#357EC7>200 rpm</font>, mixing gently by stirring the container every <b><font color=#357EC7>10 mins</font></b>. \endhtmlonly
+		\sa store(), store_for(), store_until(), incubate(), inoculation() and enum ranges
+	 */
+	void incubate_and_mix(Container* container1, float temp, Time time1, Time time_mix, MIX_TYPE type);
+	//! Drains the specified container.
+	/*!
+	\param container1 the container that has to be drained.
+	\par Example:
+	\code drain(cult_chamber); \endcode
+	\par Output:
+	\htmlonly Drain (cult_chamber.name). \endhtmlonly
+	\sa discard()
+	 */
+	void drain(Container& container1, string outputSink);
+
+
+
 };
-
-
 
 }
 
