@@ -245,7 +245,31 @@ void BioSystem::MixHelper(Container* container, MIX_TYPE mixtype, EXPERIMENT_EVE
 
 }
 
+void BioSystem:: name_sample(Container* container1, std::string new_name)
+{
+	container1->contents->new_name = new_name;
+	container1->contents->state = "";
+	container1->contents->used = 1;
+	usage_list_fluids[list_fluid_no] = container1->contents;
+	container1->contents->usage_index = list_fluid_no;
+	list_fluid_no++;
+}
 
+void BioSystem:: name_container(Container* container1, std::string name)
+{
+	fprintf(fp, "Set aside a fresh %s. Call it %s. <br>", container1->name.c_str(), name.c_str());
+	container1->name = name;
+	usage_list_containers[container1->usage_index]->name = name;
+	if (usage_list_containers[container1->usage_index]->name == container1->name)
+		usage_list_containers[container1->usage_index]->used = 1;
+	else
+	{
+		container1->used = 1;
+		usage_list_containers[list_container_no] = container1;
+		container1->usage_index = list_container_no;
+		list_container_no++;
+	}
+}
 
 void BioSystem :: PrintLeveledProtocol()
 {
@@ -271,7 +295,7 @@ void BioSystem :: PrintTree()
 void BioSystem :: start_protocol(std::string name)
 {	//BioCoder Legacy
 	filename = name;
-	std::string fName = "Output/Bio_Instruc_";
+	std::string fName = "Bio_Instruc_";
 	fName+= filename;
 	fName+= ".html";
 	fp = fopen(fName.c_str(), "w");
@@ -349,10 +373,14 @@ void BioSystem :: next_sub_step()
 }
 void BioSystem :: end_protocol()
 {
-	//TODO:: rewrite the Collect Output.
-	//proSteps->collectOutput();
-	//int i;
-	//export_graph(filename.c_str());
+	for(Container* container: usage_list_containers) {
+		if(container->_instructionStack.empty() == false) {
+			BioOperation *output = new BioOperation(this->_opNum++, OUTPUT, "output");
+			this->SetOpsParent(output,container);
+			this->BioGraphMaintance(output);
+			this->ClearContainerOpList(container);
+		}
+	}
 
 	//BioCoder Legacy
 
@@ -388,9 +416,9 @@ void BioSystem :: display_equip()
 	fprintf(fp, "<div style=\"top: 25px; margin-top: 50px; margin-left: 700px; position: absolute; z-index: 1; visibility: show;\">");
 	fprintf(fp, "<h2>Equipment:</h2><ul type=\"circle\">");
 	for(i=0; i<equip_no; i++)
-		fprintf(fp, "<li>%s</li>", equipments[i]);
+		fprintf(fp, "<li>%s</li>", equipments[i].c_str());
 	for(i=0; i<cont_no; i++)
-		fprintf(fp, "<li>%s</li>", containers[i]);
+		fprintf(fp, "<li>%s</li>", containers[i].c_str());
 	fprintf(fp, "</ul></div>");
 }
 
@@ -825,9 +853,21 @@ void BioSystem :: measure_fluid(Container* source, Volume volume1, Container* de
 }
 
 void BioSystem:: measure_fluid(Container * source, int NumSplit, int piecesToDest, Container * Dest, bool ensureMeasurement)
-{ //TODO:: Digital Microfluidics Split.
+{
+	//TODO:: Digital Microfluidics Split.
+	std::cerr<<"Current Implementation only can handle splits into 2 droplets. 1 droplet stays in source, 1 to destination.\n";
+
 	if(NumSplit < 2)
 		return;
+	fprintf(fp, "take %s and split it into %i equal parts. Send %i parts to %s and keep %i parts in %s", source->contents->new_name.c_str(), NumSplit, piecesToDest, Dest->contents->new_name.c_str(), NumSplit-piecesToDest, source->contents->new_name.c_str());
+
+
+	BioOperation* split = new BioOperation(this->_opNum++, SPLIT, NumSplit);
+	this->SetOpsParent(split,source);
+	this->BioGraphMaintance(split);
+	this->AddOpToContainer(split,source);
+	this->AddOpToContainer(split,Dest);
+	this->BioGraphMaintance(split);
 }
 
 void BioSystem :: set_temp(Container* container, double temp, TEMPERATURE_UNIT tempUnit)
@@ -1050,7 +1090,7 @@ void BioSystem:: store_until(Container* container, float temp, EXPERIMENT_EVENT 
 	default:break;
 	}
 	if(time1.GetTimeUnits() == TIME_NOT_SPECIFIED)
-	time1.display_time(fp,option_no,options_flag,total_time_required);
+		time1.display_time(fp,option_no,options_flag,total_time_required);
 
 	BioOperation* store = new BioOperation(this->_opNum++,STORE,temp,time1);
 	this->SetOpsParent(store,container);
@@ -1111,6 +1151,211 @@ void BioSystem:: incubate_and_mix(Container* container1, float temp, Time time1,
 	this->incubate(container1,temp,time1);
 	this->MixHelper(container1,type, EVENT_NOT_SPECIFIED, time_mix);
 }
+
+
+void BioSystem:: drain(Container* container1, std::string outputSink)
+{
+	BioOperation* waste = new BioOperation(this->_opNum,WASTE,outputSink);
+
+	this->SetOpsParent(waste,container1);
+	this->BioGraphMaintance(waste);
+	this->ClearContainerOpList(container1);
+	//Removed since Drain should not be a parent of anyone.
+	//	this->AddOpToContainer(waste, container1);
+
+	fprintf(fp,"Drain %s.<br>", container1->name.c_str());
+	container1->volume = 0;
+
+}
+BioOperation * BioSystem:: ce_detect (Container* container1, float length, float volt_per_cm, Fluid* fluid1)
+{
+	return this->ce_detect(container1,length, volt_per_cm, fluid1, Time());
+}
+BioOperation * BioSystem:: ce_detect (Container* container1, float length, float volt_per_cm, Fluid* fluid1, Time time1)
+{
+	//TODO Pass-on relevent info to SIMs.
+	std::cerr<<"Current implementation doesnt pass extra info besides detect to MF_SIMULATORs.\n";
+
+	if(container1 == NULL ) {
+		std::cerr<<"Contatiner is NULL for CE Detect when it shouldnt be.\n";
+		exit(-1);
+	}
+	if(fluid1 == NULL) {
+		std::cerr<<"Fluid is NULL for CE Detect when when it shouldnt be.\n";
+		exit(-1);
+	}
+
+	if (usage_list_fluids[fluid1->usage_index]->original_name == fluid1->original_name)
+		usage_list_fluids[fluid1->usage_index]->used = 1;
+	else
+	{
+		fluid1->used = 1;
+		usage_list_fluids[list_fluid_no] = fluid1;
+		fluid1->usage_index = list_fluid_no;
+		list_fluid_no++;
+	}
+	if (usage_list_containers[container1->usage_index]->name == container1->name)
+		usage_list_containers[container1->usage_index]->used = 1;
+	else
+	{
+		container1->used = 1;
+		usage_list_containers[list_container_no] = container1;
+		container1->usage_index = list_container_no;
+		list_container_no++;
+	}
+	fprintf(fp, "Detect/separate %s by capillary electrophoresis with the following settings - <b><font color=#357EC7>%g</font></b> cm at <b><font color=#357EC7>%g</font></b> V/cm using %s for ", container1->contents->new_name.c_str(), length, volt_per_cm, fluid1->new_name.c_str());
+	if (time1.GetTimeUnits() != TIME_NOT_SPECIFIED)
+		time1.display_time(fp,option_no,options_flag,total_time_required);
+
+	fprintf(fp, ".<br>");
+	name_sample(container1, "separated flow");
+
+	BioOperation *detect = new BioOperation(this->_opNum++, DETECT,CE_DETECT,time1 );
+	this->SetOpsParent(detect,container1);
+	this->BioGraphMaintance(detect);
+	this->ClearContainerOpList(container1);
+	this->AddOpToContainer(detect, container1);
+
+	return detect;
+}
+
+BioOperation * BioSystem:: measure_fluorescence (Container* container1, Time time1)
+{
+	fprintf(fp, "Measure the fluorescence of %s.<br>", container1->contents->new_name.c_str());
+
+
+	BioOperation *detect = new BioOperation(this->_opNum++, DETECT, MEASURE_FLUORESCENCE,time1 );
+	this->SetOpsParent(detect,container1);
+	this->BioGraphMaintance(detect);
+	this->ClearContainerOpList(container1);
+	this->AddOpToContainer(detect, container1);
+
+	return detect;
+}
+
+BioOperation * BioSystem:: electrophoresis(Container* container1)
+{
+	return this->electrophoresis(container1,-1);
+}
+
+BioOperation * BioSystem:: electrophoresis(Container* container1, float agar_conc)
+{
+	//TODO Pass-on relevent info to SIMs.
+	std::cerr<<"Current implementation doesnt pass extra info besides detect to MF_SIMULATORs.\n";
+
+	if (agar_conc == -1)
+		fprintf(fp,"Perform agarose gel electrophoresis of appropriate quantity of  %s mixed with ethidium bromide and visualize with UV transilluminator to confirm the presence of required product.<br>", container1->contents->new_name.c_str());
+	else
+		fprintf(fp,"Perform %g&#37 agarose gel electrophoresis of appropriate quantity of  %s mixed with ethidium bromide and visualize with UV transilluminator to confirm the presence of required product.<br>",agar_conc, container1->contents->new_name.c_str());
+
+	if(electrophoresis_no==1)
+	{
+		equipments[equip_no]="Electrophoretic unit";
+		equip_no++;
+		electrophoresis_no++;
+	}
+
+	BioOperation *detect = new BioOperation(this->_opNum++, DETECT, ELECTROPHORESIS,Time() );
+	this->SetOpsParent(detect,container1);
+	this->BioGraphMaintance(detect);
+	this->ClearContainerOpList(container1);
+	this->AddOpToContainer(detect, container1);
+
+	return detect;
+}
+BioOperation * BioSystem:: sequencing(Container* container1)
+{
+	fprintf(fp,"Dilute %s to <font color=#357EC7>100ng/ µl</font> and send <font color=#357EC7>1 µg (10 µL)</font> for sequencing.<br>", container1->contents->new_name.c_str());
+
+	BioOperation *detect = new BioOperation(this->_opNum++, DETECT, SEQUENCING, Time() );
+	this->SetOpsParent(detect,container1);
+	this->BioGraphMaintance(detect);
+	this->ClearContainerOpList(container1);
+	this->AddOpToContainer(detect, container1);
+
+	return detect;
+}
+
+BioOperation * BioSystem:: weigh(Container* container1)
+{
+	fprintf(fp, "Weigh the amount of %s present.<br>", container1->contents->new_name.c_str());
+
+	BioOperation *detect = new BioOperation(this->_opNum++, DETECT, WEIGH, Time() );
+	this->SetOpsParent(detect,container1);
+	this->BioGraphMaintance(detect);
+	this->ClearContainerOpList(container1);
+	this->AddOpToContainer(detect, container1);
+
+	return detect;
+}
+
+BioOperation * BioSystem:: facs(Container* container1)
+{
+	fprintf(fp, "FACS: sort %s based on fluorescence.", container1->contents->new_name.c_str());
+
+	BioOperation *detect = new BioOperation(this->_opNum++, DETECT, FACS, Time() );
+	this->SetOpsParent(detect,container1);
+	this->BioGraphMaintance(detect);
+	this->ClearContainerOpList(container1);
+	this->AddOpToContainer(detect, container1);
+
+	return detect;
+}
+
+BioOperation * BioSystem:: cell_culture(Container* cells, Fluid* medium, int centri_speed, float temp, float time, float percent_CO2, Fluid* for_wash_valves, Fluid* for_wash_chambers, Fluid* for_trypsinization, float for_feeding)
+{
+	//TODO Pass-on relevent info to SIMs.
+	std::cerr<<"Current implementation doesnt pass extra info besides detect to MF_SIMULATORs.\n";
+
+	fprintf(fp,"Perform cell culture with the specified parameters.");
+
+	BioOperation *detect = new BioOperation(this->_opNum++, DETECT, CELL_CULTURE, Time() );
+	this->SetOpsParent(detect,cells);
+	this->BioGraphMaintance(detect);
+	this->ClearContainerOpList(cells);
+	this->AddOpToContainer(detect, cells);
+
+	return detect;
+}
+
+BioOperation * BioSystem:: transfection(Container* container1, Fluid* medium, Fluid* dna)
+{
+	//TODO Pass-on relevent info to SIMs.
+	std::cerr<<"Current implementation doesnt pass extra info besides detect to MF_SIMULATORs.\n";
+
+	fprintf(fp,"Transfect %s with %s.", container1->contents->new_name.c_str(), dna->new_name.c_str());
+
+	BioOperation *detect = new BioOperation(this->_opNum++, DETECT, TRANSFECTION, Time() );
+	this->SetOpsParent(detect,container1);
+	this->BioGraphMaintance(detect);
+	this->ClearContainerOpList(container1);
+	this->AddOpToContainer(detect, container1);
+
+	return detect;
+}
+
+BioOperation * BioSystem:: electroporate (Container* container1, float voltage, int no_pulses)
+{
+	//TODO Pass-on relevent info to SIMs.
+	std::cerr<<"Current implementation doesnt pass extra info besides detect to MF_SIMULATORs.\n";
+
+	fprintf(fp, "Set the electroporator to deliver <b><font color=#357EC7>%g V</font></b>, and then press the PULSE button <b><font color=#357EC7>%d</font></b> times. <br>", voltage, no_pulses);
+	if(electro_no==1)
+	{
+		equipments[equip_no]="Electroporator";
+		equip_no++;
+		electro_no++;
+	}
+
+	BioOperation *detect = new BioOperation(this->_opNum++, DETECT, ELECTROPORATE, Time() );
+	this->SetOpsParent(detect,container1);
+	this->BioGraphMaintance(detect);
+	this->ClearContainerOpList(container1);
+	this->AddOpToContainer(detect, container1);
+
+	return detect;
+}
+
 
 
 } // Namespace BioCoder

@@ -56,8 +56,8 @@ class BioSystem
 	int spectrophotometer_no;
 	int cont_no;
 	int container_count[24];
-	char* containers[20];
-	char* equipments[20];
+	std::string containers[20];
+	std::string equipments[20];
 	std::string filename;
 
 	//variables required for keeping track of usage of fluids and containers
@@ -74,7 +74,7 @@ class BioSystem
 	// roots tree and user Defined Level Tree will contain the same operations
 	std::vector<BioOperation*> _roots; //Dilution Tree
 	std::vector<std::vector <BioOperation*> > _userDefinedLevelTree; //steppedProtocol
-	std::vector<Container*> _containers;
+	//std::vector<Container*> _containers;
 	std::vector<Fluid*> _fluids;
 
 
@@ -90,6 +90,30 @@ class BioSystem
 
 	void TransferMethodHelper (Container * source, Container * destination, std:: string transferWording);
 	void MixHelper(Container* container, MIX_TYPE mixtype, EXPERIMENT_EVENT event = EVENT_NOT_SPECIFIED, Time time = Time(), int =-1);
+
+
+	//! Names the contents of the specified container with the \c new_name.
+	/*!
+		\param container1 the container whose contents need to be named.
+		\param new_name the desired name of the contents of \c container1.
+		\par Example:
+		\code name_sample(tube1, "lysate"); \endcode
+		\par Output:
+		Internally, the name of \c tube1 's contents is set to "lysate".
+		\sa name_container()
+	 */
+	void name_sample(Container* container1, std::string new_name);
+	//! Labels a container with the given name.
+	/*!
+		\param container1 the container that has to be labeled.
+		\param name the name with which \c container1 has to be labeled.
+		\par Example:
+		\code name_container(eppendorf1, "Reaction Tube"); \endcode
+		\par Output:
+		\htmlonly Set aside a fresh (eppendorf1.name). Call it Reaction Tube. \endhtmlonly
+		\sa name_sample()
+	 */
+	void name_container(Container* container1, std::string name);
 public:
 	//Debug Tools
 	void PrintLeveledProtocol();
@@ -710,6 +734,7 @@ public:
 		\sa store(), store_for(), store_until(), incubate(), inoculation() and enum ranges
 	 */
 	void incubate_and_mix(Container* container1, float temp, Time time1, Time time_mix, MIX_TYPE type);
+
 	//! Drains the specified container.
 	/*!
 	\param container1 the container that has to be drained.
@@ -719,7 +744,135 @@ public:
 	\htmlonly Drain (cult_chamber.name). \endhtmlonly
 	\sa discard()
 	 */
-	void drain(Container& container1, string outputSink);
+	void drain(Container* container1, std::string outputSink);
+	//! Sends the contents of the given container to a capillary electrophoresis(CE) unit for separation/detection at the given settings.
+	/*!
+		\param container1 the container whose contents need to be detected/separated with CE.
+		\param length length of the CE column.
+		\param volt_per_cm voltage setting.
+		\param fluid1 the separation buffer.
+		\par Example:
+		\code ce_detect(eppendorf1, 23, 200, sep_buffer); \endcode
+		\par Output:
+		\htmlonly Detect/separate (eppendorf1.contents.name) by capillary electrophoresis with the following settings - <b><font color=#357EC7>23</font></b> cm at <b><font color=#357EC7>200</font></b> V/cm using (sep_buffer.name).\endhtmlonly.
+		\sa nanodrop()
+	 */
+	BioOperation * ce_detect (Container* container1, float length, float volt_per_cm, Fluid* fluid1);
+	//! Sends the contents of the given container to a capillary electrophoresis(CE) unit for separation/detection at the given settings.
+	/*!
+		\param container1 the container whose contents need to be detected/separated with CE.
+		\param length length of the CE column.
+		\param volt_per_cm voltage setting.
+		\param fluid1 the separation buffer.
+		\param time1 the duration of capillary electrophoresis at the given settings.
+		\par Example:
+		\code ce_detect(eppendorf1, 23, 200, sep_buffer, time(3, MINS)); \endcode
+		\par Output:
+		\htmlonly Detect/separate (eppendorf1.contents.name) by capillary electrophoresis with the following settings - <b><font color=#357EC7>23</font></b> cm at <b><font color=#357EC7>200</font></b> V/cm using (sep_buffer.name) for <b><font color=#357EC7>3 mins</font></b>.\endhtmlonly.
+		\sa nanodrop()
+	 */
+	BioOperation * ce_detect (Container* container1, float length, float volt_per_cm, Fluid* fluid1, Time time1);
+	//! Measures the fluorescence of the contents of the specified container.
+	/*!
+	\param container1 the container whose contents need to be measured for fluorescence.
+	\par Example:
+	\code measure_fluorescence(eppendorf1);\endcode
+	\par Output:
+	\htmlonly Measure the fluorescence of (eppendorf1.contents.name).\endhtmlonly
+	 */
+	BioOperation * measure_fluorescence (Container* container1, Time time1);
+	//! Performs agarose gel elecrophoresis of the contents of \c container1.
+	/*!
+	\param container1 the container whose contents have to be subjected to agarose gel electrophoresis.
+	\par Example:
+	\code electrophoresis(eppendorf1);\endcode
+	\par Output:
+	\htmlonly Perform agarose gel electrophoresis of appropriate quantity of (eppendorf1.contents.name)mixed with ethidium bromide
+	and visualize with UV transilluminator to confirm the presence of required product. \endhtmlonly
+	\sa nanodrop()
+	 */
+	BioOperation * electrophoresis(Container* container1);
+	//! Performs agarose gel elecrophoresis of the contents of \c container1.
+	/*!
+	\param container1 the container whose contents have to be subjected to agarose gel electrophoresis.
+	\param agar_conc the concentration of agarose in the gel.
+	\par Example:
+	\code electrophoresis(eppendorf1, 0.8);\endcode
+	\par Output:
+	\htmlonly Perform 0.8% agarose gel electrophoresis of appropriate quantity of (eppendorf1.contents.name)mixed with ethidium bromide
+	and visualize with UV transilluminator to confirm the presence of required product. \endhtmlonly
+	\sa nanodrop()
+	 */
+	BioOperation * electrophoresis(Container* container1, float agar_conc);
+	//! Prompts the user to send the sample for sequencing after diluting to appropriate concentration.
+	/*!
+	\param container1 the container whose contents have to be sent for sequencing.
+	\par Example:
+	\code sequencing(eppendorf); \endcode
+	\par Output:
+	\htmlonly Dilute to <font color=#357EC7>100ng/ µL</font> and send <font color=#357EC7>1 µg (10 µL)</font> for sequencing. \endhtmlonly
+	\sa electrophoresis(), nanodrop()
+	 */
+	BioOperation * sequencing(Container* container1);
+	//! Prompts the user to weigh the amount of solid present in the given container.
+	/*!
+	\param container1 the container with the solid whose weight needs to be determined.
+	\par Example:
+	\code weigh(eppendorf);\endcode
+	\par Output:
+	\htmlonly Weigh the amount of (eppendorf.contents.name) present. \endhtmlonly
+	 */
+	BioOperation * weigh(Container* container1);
+	//! Peforms fluorescence activated cell sorting (FACS) of the contents of \c container1.
+	/*!
+	\param container1 the container whose contents have to be sorted using FACS.
+	\par Example:
+	\code facs(eppendorf1); \endcode
+	\par Output:
+	\htmlonly FACS: Sort (eppendor1.contents.name) based on fluorescence. \endhtmlonly
+	 */
+	BioOperation * facs(Container* container1);
+	//! Performs cell culture of the cells present in the given container with the specified parameters.
+	/*!
+		\param cells the container with the cells that need to be cultured.
+		\param medium the cell culture medium.
+		\param centri_speed the speed of centrifugation to retrieve the cells. (in rpm)
+		\param temp the temperature of cell culture.
+		\param time the duration of cell culture.
+		\param percent_CO2 the percent of carbon dioxide in the cell culture chamber.
+		\param for_wash_valves the fluid used to wash the valves in the cell culture chamber.
+		\param for_wash_chambers the fluid used to wash the chamber.
+		\param for_trypsinization the fluid used for trypsinization.
+		\param for_feeding the time duration between two consecutive feeds.
+		\par Example:
+		\code cell_culture(cult_chamber, medium, 200, RT, 48, 30, fluid1, fluid2, fluid3, 20); \endcode
+		\par Output:
+		\htmlonly Perform cell culture with the specified parameters. \endhtmlonly
+	 */
+	BioOperation * cell_culture(Container* cells, Fluid* medium, int centri_speed, float temp, float time, float percent_CO2, Fluid* for_wash_valves, Fluid* for_wash_chambers, Fluid* for_trypsinization, float for_feeding);
+	//! Transfects the cells contained in \c container1 with DNA.
+	/*!
+		\param container1 the container with the cells to be transfected.
+		\param medium the medium for transfection.
+		\param dna the fluid with the DNA that will transfect the cells in \c container1.
+		\par Example:
+		\code transfection(flask, growth_medium, dna); \endcode
+		\par Output:
+		\htmlonly Transfect (flask.contents.name) with (dna.name). \endhtmlonly
+	 */
+	BioOperation * transfection(Container* container1, Fluid* medium, Fluid* dna);
+	//! Electroporates the contents of the specified container with the given settings.
+	/*!
+		\param container1 the container whose contents have to be subjected to electroporation.
+		\param voltage the electroporation voltage.
+		\param no_pulses the number of voltage pulses.
+		\par Example:
+		\code electroporate(tube1, 220, 5); \endcode
+		\par Output:
+		\htmlonly Set the electroporator to deliver <b><font color=#357EC7>220 V</font></b>, and then press the PULSE button <b><font color=#357EC7>5 times</font></b>.\endhtmlonly
+	 */
+	BioOperation * electroporate (Container* container1, float voltage, int no_pulses);
+
 
 
 
