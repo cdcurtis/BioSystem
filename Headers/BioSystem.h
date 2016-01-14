@@ -80,10 +80,19 @@ class BioSystem
 
 	//Helper functions
 
-	void ClearContainerOpList(Container *);
+	void ClearAllContainerOpList(BioOperation*);
+	void ClearContainerOpList(Container *, BioOperation* op = NULL);
+
 	void AddOpToContainer(BioOperation* , Container * );
 	void BioGraphMaintance(BioOperation *);
+	void SetOpsParent(BioOperation * );
 	void SetOpsParent(BioOperation *, Container * );
+	void SetConditionalOpsParent(BioOperation *, Container * );
+
+	void SetEndIfparents(BioOperation *, Container *);
+	void SetEndIfparents(BioOperation *);
+
+	void AddOPToAllContainers(BioOperation*);
 
 	void check_container(Container* container1);
 	void TransferOperation(Container* source, Container* destination, bool warning = false);
@@ -872,6 +881,22 @@ public:
 		\htmlonly Set the electroporator to deliver <b><font color=#357EC7>220 V</font></b>, and then press the PULSE button <b><font color=#357EC7>5 times</font></b>.\endhtmlonly
 	 */
 	BioOperation * electroporate (Container* container1, float voltage, int no_pulses);
+
+	void IF(BioExpression*);
+	void IF(BioOperation*, ConditionalOps op, BioOperation*);
+	void IF(BioOperation* lhs, ConditionalOps condition, double constant);
+	void IF(double variable, ConditionalOps condition, double constant, incrementor funct);
+
+	void ELSE_IF(BioExpression*);
+	void ELSE_IF(BioOperation*, ConditionalOps op, BioOperation*);
+	void ELSE_IF(BioOperation* lhs, ConditionalOps condition, double constant);
+	void ELSE_IF(double variable, ConditionalOps condition, double constant, incrementor funct);
+
+	void ELSE();
+
+	void END_IF();
+
+
 
 
 

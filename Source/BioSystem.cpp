@@ -16,9 +16,57 @@
 namespace BioCoder
 {
 
-void BioSystem :: ClearContainerOpList(Container * c)
+void BioSystem :: ClearAllContainerOpList(BioOperation* operation)
 {
-	c->_instructionStack.clear();
+	for(Container* container: usage_list_containers) {
+		this->ClearContainerOpList(container, operation);
+	}
+}
+void BioSystem :: ClearContainerOpList(Container * c, BioOperation* operation)
+{
+	for (std::vector<BioOperation*>::reverse_iterator it = c->_instructionStack.rbegin(); it != c->_instructionStack.rend();  ++it){
+		BioOperation * op = (*it);
+
+		//if you hit a conditional operation and the caller is not a conditional terminator we stop, otherwise clean up that conditional.
+		if(op->_opType == IF_OP || op->_opType == ELSE_IF_OP || op->_opType == ELSE_OP)
+		{
+			if( operation != NULL && operation->_opType == END_IF_OP) {
+				if (op->_opType == IF_OP ) { //remove reference to if and terminates the End IF Call.
+					c->_instructionStack.erase(--(it.base()));
+					return;
+				}
+				else//remove reference to else if and else
+					c->_instructionStack.erase(--(it.base()));
+
+			}
+			else if( operation != NULL && operation->_opType == END_WHILE_OP) {
+				std::cerr<<"Error: IF statement not properly terminated on END_WHILE Call.\n";
+				exit(-1);
+			}
+
+			else // caller was an operation within if statement.
+				return;
+		}
+		else if(op->_opType == WHILE_OP){
+			if( operation != NULL && operation->_opType == END_IF_OP) {
+				std::cerr<<"Error: While statement not properly terminated on END_IF Call.\n";
+				exit(-1);
+				//c->_instructionStack.erase(--(it.base()));
+				//return;
+			}
+			else if(operation != NULL && operation->_opType == END_WHILE_OP) {
+				//TODO::Complete loop Logic
+				std::cerr <<"Error: WHile Not Completed.";
+				exit(-2);
+			}
+			else// caller was an operation within while loop.
+				return;
+		}
+		else {//erase element
+			c->_instructionStack.erase(--(it.base()));
+		}
+
+	}
 }
 void BioSystem :: AddOpToContainer(BioOperation* op, Container * container)
 {
@@ -36,6 +84,12 @@ void BioSystem :: BioGraphMaintance(BioOperation * op)
 
 	this->_userDefinedLevelTree.at(_userDefinedLevelTree.size()-1).push_back(op);
 }
+void BioSystem :: SetOpsParent(BioOperation * op)
+{
+	for(Container* container: usage_list_containers) {
+		this->SetOpsParent(op, container);
+	}
+}
 void BioSystem :: SetOpsParent(BioOperation * op, Container * container)
 {
 
@@ -44,12 +98,112 @@ void BioSystem :: SetOpsParent(BioOperation * op, Container * container)
 		exit(-1);
 	}
 
-	for(unsigned int parentIndex = 0; parentIndex < container->_instructionStack.size(); ++parentIndex ) {
-		container->_instructionStack.at(parentIndex)->_children.push_back(op);
-		op->_parents.push_back(container->_instructionStack.at(parentIndex));
+	BioOperation* parent = container->_instructionStack.at(container->_instructionStack.size()-1);
+
+	parent->_children.push_back(op);
+	op->_parents.push_back(parent);
+
+	//if this is the first instruction after an if/else if/ else/ while. this is the instruction to execute for true.
+	if(parent->_opType == IF_OP || parent->_opType == ELSE_IF_OP || parent->_opType == ELSE_OP  || parent->_opType == WHILE_OP )
+		parent->_trueBranch = op;
+
+	for(int index = container->_instructionStack.size()-2; index >=0; --index )
+	{
+		parent = container->_instructionStack.at(index);
+
+		if(parent->_opType == IF_OP || parent->_opType == ELSE_IF_OP || parent->_opType == ELSE_OP || parent->_opType == WHILE_OP )
+			return;
+
+		parent->_children.push_back(op);
+		op->_parents.push_back(parent);
+	}
+}
+void BioSystem :: SetConditionalOpsParent(BioOperation * op, Container * container)
+{
+	//should be used for ELSE IF && ELSE Conditional OPS
+	//Sets the branching order corectly.
+	if(container->_instructionStack.size() == 0) {
+		std::cerr<<"Error Parents stack is empty. Expected to find parents for OP:"<< op->Name() << std::endl;
+		exit(-1);
 	}
 
+	for(int index = container->_instructionStack.size()-1; index >=0; --index )
+	{
+		BioOperation* parent = container->_instructionStack.at(index);
+
+		if(parent->_opType == IF_OP || parent->_opType == ELSE_IF_OP) {
+			parent->_children.push_back(op);
+			op->_parents.push_back(parent);
+			return;
+		}
+
+
+	}
+
+	std::cerr<<"Error: Expected to find Conditional parent for OP:"<< op->Name() << std::endl;
+	exit(-1);
 }
+
+void BioSystem:: SetEndIfparents(BioOperation * operation, Container * container)
+{
+	//TODO:: HANDLE While statements that can be nested.
+
+	if(container->_instructionStack.size() == 0) {
+		std::cerr<<"Error Parents stack is empty. Expected to find parents for OP:"<< operation->Name() << std::endl;
+		exit(-1);
+	}
+	if (operation->_opType != END_IF_OP)
+	{
+		std::cerr<<"Error: Calling set Endif on Non END if OP";
+		exit(-1);
+	}
+	//	bool bypassLine = false;
+
+	bool elseFound = false;
+
+	for(int index = container->_instructionStack.size()-1; index >=0; --index ) {
+		BioOperation* parent = container->_instructionStack.at(index);
+
+		if(parent->_opType == IF_OP){
+			if (elseFound == false) {//setting false branch edge when an ELSE branch is not explictly called.
+				parent->_children.push_back(operation);
+				operation->_parents.push_back(parent);
+			}
+			return;
+		}
+		if( parent->_opType == ELSE_OP) {
+			elseFound= true;
+			continue;
+		}
+		else if(parent->_opType == ELSE_IF_OP) {
+			if (elseFound == false) {//setting false branch edge when an ELSE branch is not explictly called.
+				parent->_children.push_back(operation);
+				operation->_parents.push_back(parent);
+				elseFound = true;
+			}
+			continue;
+		}
+		else {
+			parent->_children.push_back(operation);
+			operation->_parents.push_back(parent);
+		}
+	}
+}
+
+void BioSystem:: SetEndIfparents(BioOperation * operation)
+{
+	for(Container* container: usage_list_containers) {
+		this->AddOpToContainer(operation, container);
+	}
+}
+
+void BioSystem:: AddOPToAllContainers(BioOperation* operation)
+{
+	for(Container* container: usage_list_containers) {
+		this->AddOpToContainer(operation, container);
+	}
+}
+
 
 void BioSystem :: TransferOperation(Container* source, Container* destination, bool warning)
 {
@@ -287,8 +441,13 @@ void BioSystem :: PrintTree()
 	for(std::vector< BioOperation*> op_vector: this->_userDefinedLevelTree)
 	{
 		for(BioOperation* op: op_vector)
-			for (BioOperation* childOp: op->_children)
-				std::cout << op->_ID << "->" << childOp->_ID <<std::endl;
+			for (BioOperation* childOp: op->_children){
+				std::cout << op->_ID << "->" << childOp->_ID;
+					if(op->_opType == IF_OP || op->_opType == ELSE_IF_OP || op->_opType == WHILE_OP)
+						if(op->_trueBranch == childOp)
+							std::cout<<"*";
+				std:: cout<< std::endl;
+			}
 	}
 }
 
@@ -1356,6 +1515,49 @@ BioOperation * BioSystem:: electroporate (Container* container1, float voltage, 
 	return detect;
 }
 
+void BioSystem:: IF(BioExpression* expression)
+{
+	BioOperation* if_statement = new BioOperation(this->_opNum++, IF_OP, expression);
+
+	this->SetOpsParent(if_statement);
+	this->BioGraphMaintance(if_statement);
+	this->ClearAllContainerOpList(if_statement);
+	this->AddOPToAllContainers(if_statement);
+
+
+}
+
+
+void BioSystem:: IF(BioOperation* lhs, ConditionalOps condition, BioOperation* rhs)
+{
+	this->IF(new BioExpression(lhs,condition,rhs));
+}
+void BioSystem:: IF(BioOperation* lhs, ConditionalOps condition, double constant)
+{
+	this->IF(new BioExpression(lhs,condition, constant));
+}
+void BioSystem:: IF(double variable, ConditionalOps condition, double constant, incrementor funct)
+{
+	this->IF(new BioExpression(variable, condition, constant, funct));
+}
+
+/*void ELSE_IF(BioExpression*);
+void ELSE_IF(BioOperation*, ConditionalOps op, BioOperation*);
+void ELSE_IF(BioOperation* lhs, ConditionalOps condition, double constant);
+void ELSE_IF(double variable, ConditionalOps condition, double constant, incrementor funct);
+
+void ELSE();
+*/
+void  BioSystem:: END_IF()
+{
+	BioOperation* end_if = new BioOperation(this->_opNum++, END_IF_OP);
+
+	this->SetOpsParent(end_if);
+	this->BioGraphMaintance(end_if);
+	this->ClearAllContainerOpList(end_if);
+	this->AddOPToAllContainers(end_if);
+
+}
 
 
 } // Namespace BioCoder
