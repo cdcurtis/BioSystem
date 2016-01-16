@@ -99,44 +99,51 @@ public:
 		char buffer[25];
 		switch(_opType){
 		case COOL:
-			sprintf(buffer,"Cool%i", _ID);
+			sprintf(buffer,"Cool ID:%i", _ID);
 			break;
 		case DISPENSE:
-			sprintf(buffer,"Dispense%i", _ID);
+			sprintf(buffer,"Dispense ID:%i", _ID);
 			break;
 		case DETECT:
-			sprintf(buffer,"Detect%i", _ID);
+			sprintf(buffer,"Detect ID:%i", _ID);
 			break;
 		case HEAT:
-			sprintf(buffer,"Heat%i", _ID);
+			sprintf(buffer,"Heat ID:%i", _ID);
 			break;
 		case MIX:
-			sprintf(buffer,"Mix%i", _ID);
+			sprintf(buffer,"Mix ID:%i", _ID);
 			break;
 		case SPLIT:
-			sprintf(buffer,"Split%i", _ID);
+			sprintf(buffer,"Split ID:%i", _ID);
 			break;
 		case STORE:
-			sprintf(buffer,"Store%i", _ID);
+			sprintf(buffer,"Store ID:%i", _ID);
 			break;
 		case OUTPUT:
-			sprintf(buffer,"Output%i", _ID);
+			sprintf(buffer,"Output ID:%i", _ID);
 			break;
 		case WASTE:
-			sprintf(buffer,"Waste%i", _ID);
+			sprintf(buffer,"Waste ID:%i", _ID);
 			break;
 		case IF_OP:
-			sprintf(buffer,"if%i", _ID);
+			sprintf(buffer,"if ID:%i", _ID);
 			break;
 		case ELSE_IF_OP:
-			sprintf(buffer,"else if%i", _ID);
+			sprintf(buffer,"else if ID:%i", _ID);
 			break;
 		case ELSE_OP:
-			sprintf(buffer,"else%i", _ID);
+			sprintf(buffer,"else ID:%i", _ID);
 			break;
 		case WHILE_OP:
-			sprintf(buffer,"while%i", _ID);
+			sprintf(buffer,"while ID:%i", _ID);
 			break;
+		case END_IF_OP:
+			sprintf(buffer,"END_IF ID:%i", _ID);
+			break;
+		case END_WHILE_OP:
+			sprintf(buffer,"END_WHILE ID:%i", _ID);
+			break;
+
 		default:
 			sprintf(buffer,"UNKNOWN%i", _ID);
 
@@ -145,6 +152,8 @@ public:
 		return buffer;
 	}
 };
+
+
 
 struct SensorReading {
 	BioOperation* _op;

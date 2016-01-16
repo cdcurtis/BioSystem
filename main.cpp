@@ -35,7 +35,21 @@ int main (){
 	bioCoder.tap(tube,Time(SECS, 10));
 
 	bioCoder.next_step();
-	bioCoder.wait(tube, Time(SECS,5));
+	BioOperation * sensor1 = bioCoder.electrophoresis(tube);
+
+	bioCoder.next_step();
+	bioCoder.IF(sensor1, GREATER_THAN, .89);
+	bioCoder.incubate(tube, ON_ICE, Time(SECS, 10) );
+
+	bioCoder.ELSE_IF(sensor1, LESS_THAN, .5);
+	bioCoder.measure_fluid(water, tube);
+	bioCoder.vortex(tube);
+
+	bioCoder.ELSE();
+	bioCoder.drain(tube, "Waste");
+	bioCoder.measure_fluid(blood,tube);
+
+	bioCoder.END_IF();
 
 	bioCoder.next_step();
 	bioCoder.incubate_and_mix(tube,ROOM_TEMPERATURE,Time(SECS,10), Time(SECS,20),VORTEX);

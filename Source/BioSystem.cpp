@@ -31,7 +31,10 @@ void BioSystem :: ClearContainerOpList(Container * c, BioOperation* operation)
 		if(op->_opType == IF_OP || op->_opType == ELSE_IF_OP || op->_opType == ELSE_OP)
 		{
 			if( operation != NULL && operation->_opType == END_IF_OP) {
-				if (op->_opType == IF_OP ) { //remove reference to if and terminates the End IF Call.
+				if (op->_opType == IF_OP ) {
+					//Set false branch location.
+
+					//remove reference to if and terminates the End IF Call.
 					c->_instructionStack.erase(--(it.base()));
 					return;
 				}
@@ -86,6 +89,9 @@ void BioSystem :: BioGraphMaintance(BioOperation * op)
 }
 void BioSystem :: SetOpsParent(BioOperation * op)
 {
+	if (op->_opType == END_IF_OP)
+		return SetEndIfparents(op);
+
 	for(Container* container: usage_list_containers) {
 		this->SetOpsParent(op, container);
 	}
@@ -94,26 +100,47 @@ void BioSystem :: SetOpsParent(BioOperation * op, Container * container)
 {
 
 	if(container->_instructionStack.size() == 0) {
-		std::cerr<<"Error Parents stack is empty. Expected to find parents for OP:"<< op->Name() << std::endl;
-		exit(-1);
+		return;
+//		std::cerr<<"Error Parents stack is empty. Expected to find parents for OP:"<< op->Name() << std::endl;
+//		exit(-1);
 	}
-
 	BioOperation* parent = container->_instructionStack.at(container->_instructionStack.size()-1);
 
-	parent->_children.push_back(op);
-	op->_parents.push_back(parent);
 
-	//if this is the first instruction after an if/else if/ else/ while. this is the instruction to execute for true.
-	if(parent->_opType == IF_OP || parent->_opType == ELSE_IF_OP || parent->_opType == ELSE_OP  || parent->_opType == WHILE_OP )
-		parent->_trueBranch = op;
+	//if this is the first instruction after an if/else if/ else/ while. this is the instruction to execute for true branch.
+	if(parent->_opType == IF_OP || parent->_opType == ELSE_IF_OP || parent->_opType == ELSE_OP  || parent->_opType == WHILE_OP ){
+		if (!(op->_opType == ELSE_IF_OP || op->_opType == ELSE_OP)) {
+			//else if and else can never be the target of a true branch.
+			parent->_trueBranch = op;
+
+			parent->_children.push_back(op);
+			op->_parents.push_back(parent);
+
+			return;
+
+		}
+	}
+
+	if (op->_opType == DISPENSE || parent->_opType == OUTPUT || parent->_opType == WASTE)
+		return;//A dispense can never have a parent other than a conditional object and an OUPUT can never have a child
+
+	if(op->_opType != ELSE_IF_OP && op->_opType != ELSE_OP ) {
+		parent->_children.push_back(op);
+		op->_parents.push_back(parent);
+	}
+
 
 	for(int index = container->_instructionStack.size()-2; index >=0; --index )
 	{
 		parent = container->_instructionStack.at(index);
 
-		if(parent->_opType == IF_OP || parent->_opType == ELSE_IF_OP || parent->_opType == ELSE_OP || parent->_opType == WHILE_OP )
+		if(parent->_opType == IF_OP || parent->_opType == ELSE_IF_OP || parent->_opType == ELSE_OP || parent->_opType == WHILE_OP ){
+			if (op->_opType == ELSE_IF_OP || op->_opType == ELSE_OP) { // set the false branch.
+				parent->_children.push_back(op);
+				op->_parents.push_back(parent);
+			}
 			return;
-
+		}
 		parent->_children.push_back(op);
 		op->_parents.push_back(parent);
 	}
@@ -193,7 +220,11 @@ void BioSystem:: SetEndIfparents(BioOperation * operation, Container * container
 void BioSystem:: SetEndIfparents(BioOperation * operation)
 {
 	for(Container* container: usage_list_containers) {
-		this->AddOpToContainer(operation, container);
+		std::cout <<"printing stack"<<std::endl;
+		container->PrintOpStack();
+		std::cout<<"END"<<std::endl;
+
+		this->SetEndIfparents(operation, container);
 	}
 }
 
@@ -431,7 +462,7 @@ void BioSystem :: PrintLeveledProtocol()
 	{
 		std::cout << "Level: " << level << "\n\t";
 		for(unsigned int operation = 0; operation < _userDefinedLevelTree[level].size(); ++operation)
-			std::cout<<_userDefinedLevelTree[level][operation]->Name() << " ";
+			std::cout<< "(" << _userDefinedLevelTree[level][operation]->Name() << ") ";
 		std::cout<<std::endl;
 	}
 }
@@ -443,9 +474,9 @@ void BioSystem :: PrintTree()
 		for(BioOperation* op: op_vector)
 			for (BioOperation* childOp: op->_children){
 				std::cout << op->_ID << "->" << childOp->_ID;
-					if(op->_opType == IF_OP || op->_opType == ELSE_IF_OP || op->_opType == WHILE_OP)
-						if(op->_trueBranch == childOp)
-							std::cout<<"*";
+				if(op->_opType == IF_OP || op->_opType == ELSE_IF_OP || op->_opType == WHILE_OP)
+					if(op->_trueBranch == childOp)
+						std::cout<<" *(" << *op->_expression << ")";
 				std:: cout<< std::endl;
 			}
 	}
@@ -806,6 +837,7 @@ void BioSystem :: measure_fluid(Fluid *fluid1, Volume volume1, Container* contai
 
 	BioOperation * disp = new BioOperation(_opNum++,DISPENSE,volume1,fluid1);
 
+	this->SetOpsParent(disp,container1);
 	this->AddOpToContainer(disp,container1);
 	this->BioGraphMaintance(disp);
 
@@ -1264,7 +1296,7 @@ void BioSystem:: incubate(Container* container1, float temp, Time time1)
 }
 void BioSystem:: incubate(Container* container1, float temp, Time time1, int rpm)
 {
-	if (rpm == -1)
+	if (rpm != -1)
 		std::cerr << "RPM not suitable for micrfluidic device. The information will not be passed along.\n";
 
 	BioOperation* operation;
@@ -1314,13 +1346,13 @@ void BioSystem:: incubate_and_mix(Container* container1, float temp, Time time1,
 
 void BioSystem:: drain(Container* container1, std::string outputSink)
 {
-	BioOperation* waste = new BioOperation(this->_opNum,WASTE,outputSink);
+	BioOperation* waste = new BioOperation(this->_opNum++,WASTE,outputSink);
 
 	this->SetOpsParent(waste,container1);
 	this->BioGraphMaintance(waste);
 	this->ClearContainerOpList(container1);
 	//Removed since Drain should not be a parent of anyone.
-	//	this->AddOpToContainer(waste, container1);
+	this->AddOpToContainer(waste, container1);
 
 	fprintf(fp,"Drain %s.<br>", container1->name.c_str());
 	container1->volume = 0;
@@ -1400,7 +1432,8 @@ BioOperation * BioSystem:: electrophoresis(Container* container1)
 BioOperation * BioSystem:: electrophoresis(Container* container1, float agar_conc)
 {
 	//TODO Pass-on relevent info to SIMs.
-	std::cerr<<"Current implementation doesnt pass extra info besides detect to MF_SIMULATORs.\n";
+	if (agar_conc != -1)
+		std::cerr<<"Current implementation doesnt pass extra info besides detect to MF_SIMULATORs.\n";
 
 	if (agar_conc == -1)
 		fprintf(fp,"Perform agarose gel electrophoresis of appropriate quantity of  %s mixed with ethidium bromide and visualize with UV transilluminator to confirm the presence of required product.<br>", container1->contents->new_name.c_str());
@@ -1536,18 +1569,43 @@ void BioSystem:: IF(BioOperation* lhs, ConditionalOps condition, double constant
 {
 	this->IF(new BioExpression(lhs,condition, constant));
 }
-void BioSystem:: IF(double variable, ConditionalOps condition, double constant, incrementor funct)
+/*void BioSystem:: IF(double variable, ConditionalOps condition, double constant, incrementor funct)
 {
 	this->IF(new BioExpression(variable, condition, constant, funct));
+}*/
+
+void BioSystem:: ELSE_IF(BioExpression* expression)
+{
+	BioOperation* else_if_statement = new BioOperation(this->_opNum++, ELSE_IF_OP, expression);
+
+	this->SetOpsParent(else_if_statement);
+	this->BioGraphMaintance(else_if_statement);
+	//this->ClearAllContainerOpList(else_if_statement);
+	this->AddOPToAllContainers(else_if_statement);
+}
+void BioSystem:: ELSE_IF(BioOperation* lhs, ConditionalOps condition, BioOperation* rhs)
+{
+	return this->ELSE_IF(new BioExpression(lhs,condition,rhs));
+}
+void BioSystem:: ELSE_IF(BioOperation* lhs, ConditionalOps condition, double constant)
+{
+	return this->ELSE_IF(new BioExpression(lhs,condition,constant));
+}
+/*void BioSystem:: ELSE_IF(double variable, ConditionalOps condition, double constant, incrementor funct)
+{
+	return this->
+}*/
+
+void BioSystem:: ELSE()
+{
+	BioOperation* else_operation = new BioOperation(this->_opNum++, ELSE_OP);
+
+	this->SetOpsParent(else_operation);
+	this->BioGraphMaintance(else_operation);
+	//this->ClearAllContainerOpList(else_operation);
+	this->AddOPToAllContainers(else_operation);
 }
 
-/*void ELSE_IF(BioExpression*);
-void ELSE_IF(BioOperation*, ConditionalOps op, BioOperation*);
-void ELSE_IF(BioOperation* lhs, ConditionalOps condition, double constant);
-void ELSE_IF(double variable, ConditionalOps condition, double constant, incrementor funct);
-
-void ELSE();
-*/
 void  BioSystem:: END_IF()
 {
 	BioOperation* end_if = new BioOperation(this->_opNum++, END_IF_OP);

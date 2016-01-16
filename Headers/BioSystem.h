@@ -885,12 +885,12 @@ public:
 	void IF(BioExpression*);
 	void IF(BioOperation*, ConditionalOps op, BioOperation*);
 	void IF(BioOperation* lhs, ConditionalOps condition, double constant);
-	void IF(double variable, ConditionalOps condition, double constant, incrementor funct);
+	//void IF(double variable, ConditionalOps condition, double constant, incrementor funct);
 
 	void ELSE_IF(BioExpression*);
 	void ELSE_IF(BioOperation*, ConditionalOps op, BioOperation*);
 	void ELSE_IF(BioOperation* lhs, ConditionalOps condition, double constant);
-	void ELSE_IF(double variable, ConditionalOps condition, double constant, incrementor funct);
+	//void ELSE_IF(double variable, ConditionalOps condition, double constant, incrementor funct);
 
 	void ELSE();
 

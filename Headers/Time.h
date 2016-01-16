@@ -64,7 +64,7 @@ namespace BioCoder
 		}
 	};
 
-	/*std::ostream& operator<<(std::ostream& os, const Time& obj)
+/*std::ostream& operator<<(std::ostream& os, const Time& obj)
 	{
 
 		switch ( obj.GetTimeUnits()) {
