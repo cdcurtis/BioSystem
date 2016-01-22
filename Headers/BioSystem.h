@@ -766,7 +766,7 @@ public:
 		\htmlonly Detect/separate (eppendorf1.contents.name) by capillary electrophoresis with the following settings - <b><font color=#357EC7>23</font></b> cm at <b><font color=#357EC7>200</font></b> V/cm using (sep_buffer.name).\endhtmlonly.
 		\sa nanodrop()
 	 */
-	BioOperation * ce_detect (Container* container1, float length, float volt_per_cm, Fluid* fluid1);
+	BioOperation * ce_detect (Container* container1, float length, float volt_per_cm, Fluid* fluid1, std::string nickname = "");
 	//! Sends the contents of the given container to a capillary electrophoresis(CE) unit for separation/detection at the given settings.
 	/*!
 		\param container1 the container whose contents need to be detected/separated with CE.
@@ -780,7 +780,7 @@ public:
 		\htmlonly Detect/separate (eppendorf1.contents.name) by capillary electrophoresis with the following settings - <b><font color=#357EC7>23</font></b> cm at <b><font color=#357EC7>200</font></b> V/cm using (sep_buffer.name) for <b><font color=#357EC7>3 mins</font></b>.\endhtmlonly.
 		\sa nanodrop()
 	 */
-	BioOperation * ce_detect (Container* container1, float length, float volt_per_cm, Fluid* fluid1, Time time1);
+	BioOperation * ce_detect (Container* container1, float length, float volt_per_cm, Fluid* fluid1, Time time1, std::string nickname = "");
 	//! Measures the fluorescence of the contents of the specified container.
 	/*!
 	\param container1 the container whose contents need to be measured for fluorescence.
@@ -789,7 +789,7 @@ public:
 	\par Output:
 	\htmlonly Measure the fluorescence of (eppendorf1.contents.name).\endhtmlonly
 	 */
-	BioOperation * measure_fluorescence (Container* container1, Time time1);
+	BioOperation * measure_fluorescence (Container* container1, Time time1, std::string nickname = "");
 	//! Performs agarose gel elecrophoresis of the contents of \c container1.
 	/*!
 	\param container1 the container whose contents have to be subjected to agarose gel electrophoresis.
@@ -800,7 +800,7 @@ public:
 	and visualize with UV transilluminator to confirm the presence of required product. \endhtmlonly
 	\sa nanodrop()
 	 */
-	BioOperation * electrophoresis(Container* container1);
+	BioOperation * electrophoresis(Container* container1, std::string nickname = "");
 	//! Performs agarose gel elecrophoresis of the contents of \c container1.
 	/*!
 	\param container1 the container whose contents have to be subjected to agarose gel electrophoresis.
@@ -812,7 +812,7 @@ public:
 	and visualize with UV transilluminator to confirm the presence of required product. \endhtmlonly
 	\sa nanodrop()
 	 */
-	BioOperation * electrophoresis(Container* container1, float agar_conc);
+	BioOperation * electrophoresis(Container* container1, float agar_conc, std::string nickname = "");
 	//! Prompts the user to send the sample for sequencing after diluting to appropriate concentration.
 	/*!
 	\param container1 the container whose contents have to be sent for sequencing.
@@ -822,7 +822,7 @@ public:
 	\htmlonly Dilute to <font color=#357EC7>100ng/ µL</font> and send <font color=#357EC7>1 µg (10 µL)</font> for sequencing. \endhtmlonly
 	\sa electrophoresis(), nanodrop()
 	 */
-	BioOperation * sequencing(Container* container1);
+	BioOperation * sequencing(Container* container1, std::string nickname = "");
 	//! Prompts the user to weigh the amount of solid present in the given container.
 	/*!
 	\param container1 the container with the solid whose weight needs to be determined.
@@ -831,7 +831,7 @@ public:
 	\par Output:
 	\htmlonly Weigh the amount of (eppendorf.contents.name) present. \endhtmlonly
 	 */
-	BioOperation * weigh(Container* container1);
+	BioOperation * weigh(Container* container1, std::string nickname = "");
 	//! Peforms fluorescence activated cell sorting (FACS) of the contents of \c container1.
 	/*!
 	\param container1 the container whose contents have to be sorted using FACS.
@@ -840,7 +840,7 @@ public:
 	\par Output:
 	\htmlonly FACS: Sort (eppendor1.contents.name) based on fluorescence. \endhtmlonly
 	 */
-	BioOperation * facs(Container* container1);
+	BioOperation * facs(Container* container1,std::string nickname = "");
 	//! Performs cell culture of the cells present in the given container with the specified parameters.
 	/*!
 		\param cells the container with the cells that need to be cultured.
@@ -858,7 +858,7 @@ public:
 		\par Output:
 		\htmlonly Perform cell culture with the specified parameters. \endhtmlonly
 	 */
-	BioOperation * cell_culture(Container* cells, Fluid* medium, int centri_speed, float temp, float time, float percent_CO2, Fluid* for_wash_valves, Fluid* for_wash_chambers, Fluid* for_trypsinization, float for_feeding);
+	BioOperation * cell_culture(Container* cells, Fluid* medium, int centri_speed, float temp, float time, float percent_CO2, Fluid* for_wash_valves, Fluid* for_wash_chambers, Fluid* for_trypsinization, float for_feeding, std::string nickname = "");
 	//! Transfects the cells contained in \c container1 with DNA.
 	/*!
 		\param container1 the container with the cells to be transfected.
@@ -869,7 +869,7 @@ public:
 		\par Output:
 		\htmlonly Transfect (flask.contents.name) with (dna.name). \endhtmlonly
 	 */
-	BioOperation * transfection(Container* container1, Fluid* medium, Fluid* dna);
+	BioOperation * transfection(Container* container1, Fluid* medium, Fluid* dna, std::string nickname = "");
 	//! Electroporates the contents of the specified container with the given settings.
 	/*!
 		\param container1 the container whose contents have to be subjected to electroporation.
@@ -880,7 +880,7 @@ public:
 		\par Output:
 		\htmlonly Set the electroporator to deliver <b><font color=#357EC7>220 V</font></b>, and then press the PULSE button <b><font color=#357EC7>5 times</font></b>.\endhtmlonly
 	 */
-	BioOperation * electroporate (Container* container1, float voltage, int no_pulses);
+	BioOperation * electroporate (Container* container1, float voltage, int no_pulses, std::string nickname = "");
 
 	void IF(BioExpression*);
 	void IF(BioOperation*, ConditionalOps op, BioOperation*);
@@ -893,13 +893,14 @@ public:
 	//void ELSE_IF(double variable, ConditionalOps condition, double constant, incrementor funct);
 
 	void ELSE();
-
 	void END_IF();
 
+	void WHILE(BioExpression * expression);
+	void WHILE(BioOperation*, ConditionalOps op, BioOperation*);
+	void WHILE(BioOperation* lhs, ConditionalOps condition, double constant);
+	void WHILE(double variable, ConditionalOps condition, double constant, incrementor funct);
 
-
-
-
+	void END_WHILE();
 
 };
 

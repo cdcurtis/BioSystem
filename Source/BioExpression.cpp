@@ -11,7 +11,7 @@
 namespace BioCoder
 {
 BioExpression:: BioExpression(BioExpression* lhs, ConditionalOps condition, BioExpression* rhs)
-:_fucnt(NULL),_lhs(lhs), _rhs(rhs),_conditionalOperation(condition), _terminalLHS(NULL),_terminalRHS(NULL), _variable(-1), _constant(-1)
+:_fucnt(NULL),_lhs(lhs), _rhs(rhs),_conditionalOperation(condition), _terminalLHS(NULL),_terminalRHS(NULL), _variable(-1), _constant(-1),_lhsNickName(""),_rhsNickname("")
 {
 	if(condition != AND && condition != OR){
 		std::cerr<<"Error: Constructor not valid for specified operation. Expected to see AND/OR.\n";
@@ -20,7 +20,7 @@ BioExpression:: BioExpression(BioExpression* lhs, ConditionalOps condition, BioE
 }
 
 BioExpression:: BioExpression(ConditionalOps condition, BioExpression* notExpression)
-:_fucnt(NULL),_lhs(NULL), _rhs(notExpression),_conditionalOperation(condition), _terminalLHS(NULL),_terminalRHS(NULL), _variable(-1), _constant(-1)
+:_fucnt(NULL),_lhs(NULL), _rhs(notExpression),_conditionalOperation(condition), _terminalLHS(NULL),_terminalRHS(NULL), _variable(-1), _constant(-1),_lhsNickName(""),_rhsNickname("")
 {
 	if(condition != NOT){
 		std::cerr<<"Error: Constructor not valid for specified operation. Expected to see NOT.\n";
@@ -29,18 +29,95 @@ BioExpression:: BioExpression(ConditionalOps condition, BioExpression* notExpres
 
 }
 
+BioExpression::BioExpression(std::string lhs, ConditionalOps condition, std::string rhs)
+:_fucnt(NULL),_lhs(NULL), _rhs(NULL),_conditionalOperation(condition), _terminalLHS(NULL),_terminalRHS(NULL), _variable(-1), _constant(-1),_lhsNickName(lhs),_rhsNickname(rhs)
+{
+	if(condition == NOT){
+		std::cerr<<"Error: Constructor not valid for NOT operator.\n";
+		exit(-1);
+	}
+	else if( condition == AND) {
+		std::cerr<<"Error: Constructor not valid for AND operator.\n";
+		exit(-1);
+	}
+	else if ( condition == OR) {
+		std::cerr<<"Error: Constructor not valid for OR operator.\n";
+		exit(-1);
+	}
+}
+
+BioExpression:: BioExpression(BioOperation* lhs, ConditionalOps condition, std::string rhs)
+:_fucnt(NULL),_lhs(NULL), _rhs(NULL),_conditionalOperation(condition), _terminalLHS(lhs),_terminalRHS(NULL), _variable(-1), _constant(-1),_lhsNickName(""),_rhsNickname(rhs)
+{
+	if(condition == NOT){
+		std::cerr<<"Error: Constructor not valid for NOT operator.\n";
+		exit(-1);
+	}
+	else if( condition == AND) {
+		std::cerr<<"Error: Constructor not valid for AND operator.\n";
+		exit(-1);
+	}
+	else if ( condition == OR) {
+		std::cerr<<"Error: Constructor not valid for OR operator.\n";
+		exit(-1);
+	}
+}
+
+BioExpression:: BioExpression(std::string lhs, ConditionalOps condition,  BioOperation* rhs)
+:_fucnt(NULL),_lhs(NULL), _rhs(NULL),_conditionalOperation(condition), _terminalLHS(NULL),_terminalRHS(rhs), _variable(-1), _constant(-1),_lhsNickName(lhs),_rhsNickname("")
+{
+	if(condition == NOT){
+		std::cerr<<"Error: Constructor not valid for NOT operator.\n";
+		exit(-1);
+	}
+	else if( condition == AND) {
+		std::cerr<<"Error: Constructor not valid for AND operator.\n";
+		exit(-1);
+	}
+	else if ( condition == OR) {
+		std::cerr<<"Error: Constructor not valid for OR operator.\n";
+		exit(-1);
+	}
+}
+
+BioExpression:: BioExpression(std::string lhs , ConditionalOps condition, double constant)
+:_fucnt(NULL),_lhs(NULL), _rhs(NULL),_conditionalOperation(condition), _terminalLHS(NULL),_terminalRHS(NULL), _variable(-1), _constant(-1),_lhsNickName(lhs),_rhsNickname("")
+{
+	if(condition == NOT){
+		std::cerr<<"Error: Constructor not valid for NOT operator.\n";
+		exit(-1);
+	}
+	else if( condition == AND) {
+		std::cerr<<"Error: Constructor not valid for AND operator.\n";
+		exit(-1);
+	}
+	else if ( condition == OR) {
+		std::cerr<<"Error: Constructor not valid for OR operator.\n";
+		exit(-1);
+	}
+}
+
+
 //terminal Expressions
 BioExpression:: BioExpression(BioOperation* lhs, ConditionalOps condition, BioOperation* rhs)
-:_fucnt(NULL),_lhs(NULL), _rhs(NULL),_conditionalOperation(condition), _terminalLHS(lhs),_terminalRHS(rhs), _variable(-1), _constant(-1)
+:_fucnt(NULL),_lhs(NULL), _rhs(NULL),_conditionalOperation(condition), _terminalLHS(lhs),_terminalRHS(rhs), _variable(-1), _constant(-1),_lhsNickName(""),_rhsNickname("")
 {
-	if(condition != NOT){
-		std::cerr<<"Error: Constructor not valid for specified operation. Expected to see NOT.\n";
+	if(condition == NOT){
+		std::cerr<<"Error: Constructor not valid for NOT operator.\n";
+		exit(-1);
+	}
+	else if( condition == AND) {
+		std::cerr<<"Error: Constructor not valid for AND operator.\n";
+		exit(-1);
+	}
+	else if ( condition == OR) {
+		std::cerr<<"Error: Constructor not valid for OR operator.\n";
 		exit(-1);
 	}
 }
 
 BioExpression:: BioExpression(BioOperation* lhs, ConditionalOps condition, double constant)
-:_fucnt(NULL),_lhs(NULL), _rhs(NULL),_conditionalOperation(condition), _terminalLHS(lhs),_terminalRHS(NULL), _variable(-1), _constant(constant)
+:_fucnt(NULL),_lhs(NULL), _rhs(NULL),_conditionalOperation(condition), _terminalLHS(lhs),_terminalRHS(NULL), _variable(-1), _constant(constant),_lhsNickName(""),_rhsNickname("")
 {
 	if(condition == NOT){
 		std::cerr<<"Error: Constructor not valid for NOT operator.\n";
@@ -58,7 +135,7 @@ BioExpression:: BioExpression(BioOperation* lhs, ConditionalOps condition, doubl
 }
 
 BioExpression:: BioExpression(double variable,ConditionalOps condition, double constant, incrementor funct)
-:_fucnt(funct),_lhs(NULL), _rhs(NULL),_conditionalOperation(condition), _terminalLHS(NULL),_terminalRHS(NULL), _variable(variable), _constant(constant)
+:_fucnt(funct),_lhs(NULL), _rhs(NULL),_conditionalOperation(condition), _terminalLHS(NULL),_terminalRHS(NULL), _variable(variable), _constant(constant),_lhsNickName(""),_rhsNickname("")
 {
 	if(condition == NOT){
 		std::cerr<<"Error: Constructor not valid for NOT operator.\n";
@@ -82,6 +159,8 @@ std::ostream& operator<<(std::ostream& os, const  BioExpression& obj)
 		os<<obj._terminalLHS->Name();
 	else if (obj._variable != -1 )
 		os<<obj. _variable;
+	else if (obj._lhsNickName != "")
+		os <<obj._lhsNickName;
 
 	os << " ";
 	switch (obj._conditionalOperation) {
@@ -122,6 +201,8 @@ std::ostream& operator<<(std::ostream& os, const  BioExpression& obj)
 		os<<obj._terminalRHS->Name();
 	else if (obj._constant != -1 )
 		os<< obj._constant;
+	else if (obj._rhsNickname != "")
+		os <<obj._rhsNickname;
 
 
 

@@ -28,7 +28,7 @@ void BioSystem :: ClearContainerOpList(Container * c, BioOperation* operation)
 		BioOperation * op = (*it);
 
 		//if you hit a conditional operation and the caller is not a conditional terminator we stop, otherwise clean up that conditional.
-		if(op->_opType == IF_OP || op->_opType == ELSE_IF_OP || op->_opType == ELSE_OP)
+		if(op->_opType == IF_OP || op->_opType == ELSE_IF_OP || op->_opType == ELSE_OP )
 		{
 			if( operation != NULL && operation->_opType == END_IF_OP) {
 				if (op->_opType == IF_OP ) {
@@ -58,9 +58,13 @@ void BioSystem :: ClearContainerOpList(Container * c, BioOperation* operation)
 				//return;
 			}
 			else if(operation != NULL && operation->_opType == END_WHILE_OP) {
-				//TODO::Complete loop Logic
-				std::cerr <<"Error: WHile Not Completed.";
-				exit(-2);
+				//set my child as the loop header. This completes loop DAG.
+				operation->_children.push_back(op);
+				op->_parents.push_back(operation);
+
+				// delete the while header from the instruction stack to ensure that an instuction is not mistakenly taken as a while instuction.
+				c->_instructionStack.erase(--(it.base()));
+				return;
 			}
 			else// caller was an operation within while loop.
 				return;
@@ -101,11 +105,21 @@ void BioSystem :: SetOpsParent(BioOperation * op, Container * container)
 
 	if(container->_instructionStack.size() == 0) {
 		return;
-//		std::cerr<<"Error Parents stack is empty. Expected to find parents for OP:"<< op->Name() << std::endl;
-//		exit(-1);
+		//		std::cerr<<"Error Parents stack is empty. Expected to find parents for OP:"<< op->Name() << std::endl;
+		//		exit(-1);
 	}
 	BioOperation* parent = container->_instructionStack.at(container->_instructionStack.size()-1);
 
+
+	//if this is the operation after the END WHILE. Take the END_WHILE child (While Header) and set that as your parent.
+	if (parent->_opType == END_WHILE_OP){
+		BioOperation * whileHeader = parent->_children.at(0);
+
+		//sets false branch.
+		whileHeader->_children.push_back(op);
+		op->_parents.push_back(whileHeader);
+		return;
+	}
 
 	//if this is the first instruction after an if/else if/ else/ while. this is the instruction to execute for true branch.
 	if(parent->_opType == IF_OP || parent->_opType == ELSE_IF_OP || parent->_opType == ELSE_OP  || parent->_opType == WHILE_OP ){
@@ -1358,11 +1372,11 @@ void BioSystem:: drain(Container* container1, std::string outputSink)
 	container1->volume = 0;
 
 }
-BioOperation * BioSystem:: ce_detect (Container* container1, float length, float volt_per_cm, Fluid* fluid1)
+BioOperation * BioSystem:: ce_detect (Container* container1, float length, float volt_per_cm, Fluid* fluid1, std::string nickname)
 {
-	return this->ce_detect(container1,length, volt_per_cm, fluid1, Time());
+	return this->ce_detect(container1,length, volt_per_cm, fluid1, Time(), nickname);
 }
-BioOperation * BioSystem:: ce_detect (Container* container1, float length, float volt_per_cm, Fluid* fluid1, Time time1)
+BioOperation * BioSystem:: ce_detect (Container* container1, float length, float volt_per_cm, Fluid* fluid1, Time time1, std::string nickname)
 {
 	//TODO Pass-on relevent info to SIMs.
 	std::cerr<<"Current implementation doesnt pass extra info besides detect to MF_SIMULATORs.\n";
@@ -1401,7 +1415,7 @@ BioOperation * BioSystem:: ce_detect (Container* container1, float length, float
 	fprintf(fp, ".<br>");
 	name_sample(container1, "separated flow");
 
-	BioOperation *detect = new BioOperation(this->_opNum++, DETECT,CE_DETECT,time1 );
+	BioOperation *detect = new BioOperation(this->_opNum++, DETECT,CE_DETECT,time1,nickname );
 	this->SetOpsParent(detect,container1);
 	this->BioGraphMaintance(detect);
 	this->ClearContainerOpList(container1);
@@ -1410,12 +1424,12 @@ BioOperation * BioSystem:: ce_detect (Container* container1, float length, float
 	return detect;
 }
 
-BioOperation * BioSystem:: measure_fluorescence (Container* container1, Time time1)
+BioOperation * BioSystem:: measure_fluorescence (Container* container1, Time time1, std::string nickname)
 {
 	fprintf(fp, "Measure the fluorescence of %s.<br>", container1->contents->new_name.c_str());
 
 
-	BioOperation *detect = new BioOperation(this->_opNum++, DETECT, MEASURE_FLUORESCENCE,time1 );
+	BioOperation *detect = new BioOperation(this->_opNum++, DETECT, MEASURE_FLUORESCENCE,time1, nickname );
 	this->SetOpsParent(detect,container1);
 	this->BioGraphMaintance(detect);
 	this->ClearContainerOpList(container1);
@@ -1424,12 +1438,12 @@ BioOperation * BioSystem:: measure_fluorescence (Container* container1, Time tim
 	return detect;
 }
 
-BioOperation * BioSystem:: electrophoresis(Container* container1)
+BioOperation * BioSystem:: electrophoresis(Container* container1, std::string nickname)
 {
-	return this->electrophoresis(container1,-1);
+	return this->electrophoresis(container1,-1, nickname);
 }
 
-BioOperation * BioSystem:: electrophoresis(Container* container1, float agar_conc)
+BioOperation * BioSystem:: electrophoresis(Container* container1, float agar_conc, std::string nickname)
 {
 	//TODO Pass-on relevent info to SIMs.
 	if (agar_conc != -1)
@@ -1447,7 +1461,7 @@ BioOperation * BioSystem:: electrophoresis(Container* container1, float agar_con
 		electrophoresis_no++;
 	}
 
-	BioOperation *detect = new BioOperation(this->_opNum++, DETECT, ELECTROPHORESIS,Time() );
+	BioOperation *detect = new BioOperation(this->_opNum++, DETECT, ELECTROPHORESIS,Time(), nickname );
 	this->SetOpsParent(detect,container1);
 	this->BioGraphMaintance(detect);
 	this->ClearContainerOpList(container1);
@@ -1455,11 +1469,11 @@ BioOperation * BioSystem:: electrophoresis(Container* container1, float agar_con
 
 	return detect;
 }
-BioOperation * BioSystem:: sequencing(Container* container1)
+BioOperation * BioSystem:: sequencing(Container* container1, std::string nickname)
 {
 	fprintf(fp,"Dilute %s to <font color=#357EC7>100ng/ µl</font> and send <font color=#357EC7>1 µg (10 µL)</font> for sequencing.<br>", container1->contents->new_name.c_str());
 
-	BioOperation *detect = new BioOperation(this->_opNum++, DETECT, SEQUENCING, Time() );
+	BioOperation *detect = new BioOperation(this->_opNum++, DETECT, SEQUENCING, Time(), nickname );
 	this->SetOpsParent(detect,container1);
 	this->BioGraphMaintance(detect);
 	this->ClearContainerOpList(container1);
@@ -1468,11 +1482,11 @@ BioOperation * BioSystem:: sequencing(Container* container1)
 	return detect;
 }
 
-BioOperation * BioSystem:: weigh(Container* container1)
+BioOperation * BioSystem:: weigh(Container* container1, std::string nickname)
 {
 	fprintf(fp, "Weigh the amount of %s present.<br>", container1->contents->new_name.c_str());
 
-	BioOperation *detect = new BioOperation(this->_opNum++, DETECT, WEIGH, Time() );
+	BioOperation *detect = new BioOperation(this->_opNum++, DETECT, WEIGH, Time(), nickname );
 	this->SetOpsParent(detect,container1);
 	this->BioGraphMaintance(detect);
 	this->ClearContainerOpList(container1);
@@ -1481,11 +1495,11 @@ BioOperation * BioSystem:: weigh(Container* container1)
 	return detect;
 }
 
-BioOperation * BioSystem:: facs(Container* container1)
+BioOperation * BioSystem:: facs(Container* container1, std:: string nickname)
 {
 	fprintf(fp, "FACS: sort %s based on fluorescence.", container1->contents->new_name.c_str());
 
-	BioOperation *detect = new BioOperation(this->_opNum++, DETECT, FACS, Time() );
+	BioOperation *detect = new BioOperation(this->_opNum++, DETECT, FACS, Time(), nickname );
 	this->SetOpsParent(detect,container1);
 	this->BioGraphMaintance(detect);
 	this->ClearContainerOpList(container1);
@@ -1494,14 +1508,14 @@ BioOperation * BioSystem:: facs(Container* container1)
 	return detect;
 }
 
-BioOperation * BioSystem:: cell_culture(Container* cells, Fluid* medium, int centri_speed, float temp, float time, float percent_CO2, Fluid* for_wash_valves, Fluid* for_wash_chambers, Fluid* for_trypsinization, float for_feeding)
+BioOperation * BioSystem:: cell_culture(Container* cells, Fluid* medium, int centri_speed, float temp, float time, float percent_CO2, Fluid* for_wash_valves, Fluid* for_wash_chambers, Fluid* for_trypsinization, float for_feeding, std::string nickname)
 {
 	//TODO Pass-on relevent info to SIMs.
 	std::cerr<<"Current implementation doesnt pass extra info besides detect to MF_SIMULATORs.\n";
 
 	fprintf(fp,"Perform cell culture with the specified parameters.");
 
-	BioOperation *detect = new BioOperation(this->_opNum++, DETECT, CELL_CULTURE, Time() );
+	BioOperation *detect = new BioOperation(this->_opNum++, DETECT, CELL_CULTURE, Time(), nickname );
 	this->SetOpsParent(detect,cells);
 	this->BioGraphMaintance(detect);
 	this->ClearContainerOpList(cells);
@@ -1510,14 +1524,14 @@ BioOperation * BioSystem:: cell_culture(Container* cells, Fluid* medium, int cen
 	return detect;
 }
 
-BioOperation * BioSystem:: transfection(Container* container1, Fluid* medium, Fluid* dna)
+BioOperation * BioSystem:: transfection(Container* container1, Fluid* medium, Fluid* dna, std::string nickname)
 {
 	//TODO Pass-on relevent info to SIMs.
 	std::cerr<<"Current implementation doesnt pass extra info besides detect to MF_SIMULATORs.\n";
 
 	fprintf(fp,"Transfect %s with %s.", container1->contents->new_name.c_str(), dna->new_name.c_str());
 
-	BioOperation *detect = new BioOperation(this->_opNum++, DETECT, TRANSFECTION, Time() );
+	BioOperation *detect = new BioOperation(this->_opNum++, DETECT, TRANSFECTION, Time(), nickname );
 	this->SetOpsParent(detect,container1);
 	this->BioGraphMaintance(detect);
 	this->ClearContainerOpList(container1);
@@ -1526,7 +1540,7 @@ BioOperation * BioSystem:: transfection(Container* container1, Fluid* medium, Fl
 	return detect;
 }
 
-BioOperation * BioSystem:: electroporate (Container* container1, float voltage, int no_pulses)
+BioOperation * BioSystem:: electroporate (Container* container1, float voltage, int no_pulses, std::string nickname)
 {
 	//TODO Pass-on relevent info to SIMs.
 	std::cerr<<"Current implementation doesnt pass extra info besides detect to MF_SIMULATORs.\n";
@@ -1539,7 +1553,7 @@ BioOperation * BioSystem:: electroporate (Container* container1, float voltage, 
 		electro_no++;
 	}
 
-	BioOperation *detect = new BioOperation(this->_opNum++, DETECT, ELECTROPORATE, Time() );
+	BioOperation *detect = new BioOperation(this->_opNum++, DETECT, ELECTROPORATE, Time(), nickname );
 	this->SetOpsParent(detect,container1);
 	this->BioGraphMaintance(detect);
 	this->ClearContainerOpList(container1);
@@ -1569,10 +1583,6 @@ void BioSystem:: IF(BioOperation* lhs, ConditionalOps condition, double constant
 {
 	this->IF(new BioExpression(lhs,condition, constant));
 }
-/*void BioSystem:: IF(double variable, ConditionalOps condition, double constant, incrementor funct)
-{
-	this->IF(new BioExpression(variable, condition, constant, funct));
-}*/
 
 void BioSystem:: ELSE_IF(BioExpression* expression)
 {
@@ -1591,10 +1601,7 @@ void BioSystem:: ELSE_IF(BioOperation* lhs, ConditionalOps condition, double con
 {
 	return this->ELSE_IF(new BioExpression(lhs,condition,constant));
 }
-/*void BioSystem:: ELSE_IF(double variable, ConditionalOps condition, double constant, incrementor funct)
-{
-	return this->
-}*/
+
 
 void BioSystem:: ELSE()
 {
@@ -1616,6 +1623,43 @@ void  BioSystem:: END_IF()
 	this->AddOPToAllContainers(end_if);
 
 }
+
+void  BioSystem :: WHILE(BioExpression* expression)
+{
+	BioOperation* while_statement = new BioOperation(this->_opNum++, WHILE_OP, expression);
+
+	this->SetOpsParent(while_statement );
+	this->BioGraphMaintance(while_statement );
+	this->ClearAllContainerOpList(while_statement );
+	this->AddOPToAllContainers(while_statement );
+
+}
+
+void BioSystem :: WHILE(BioOperation * lhs, ConditionalOps condition, BioOperation* rhs)
+{
+	this->WHILE(new BioExpression (lhs,condition, rhs));
+}
+
+void BioSystem ::  WHILE(BioOperation* lhs, ConditionalOps condition, double constant)
+{
+	this ->WHILE(new BioExpression (lhs, condition, constant));
+}
+void BioSystem:: WHILE(double variable, ConditionalOps condition, double constant, incrementor funct)
+{
+	this->WHILE( new BioExpression(variable, condition, constant, funct));
+}
+
+void BioSystem :: END_WHILE()
+{
+	BioOperation* end_while = new BioOperation(this->_opNum++, END_WHILE_OP);
+
+	this->SetOpsParent(end_while);
+	this->BioGraphMaintance(end_while);
+	this->ClearAllContainerOpList(end_while);
+	this->AddOPToAllContainers(end_while);
+}
+
+
 
 
 } // Namespace BioCoder

@@ -46,51 +46,51 @@ public:
 	Volume _destinationVolume;
 	BioExpression* _expression;
 	BioOperation* _trueBranch;
-
+	std::string _nickname;
 
 
 	BioOperation(int id)
-	: _ID(id), _opType(OPERATION_NOT_SPECIFED), _volume(), _time(), _temp(), _fluid(NULL), _detectType(DETECT_NOT_SPECIFIED), _mixType(MIX_NOT_SPECIFIED), _outputName(NULL), _numDrops(-1), _destinationVolume(),_expression(NULL),_trueBranch(NULL)
+	: _ID(id), _opType(OPERATION_NOT_SPECIFED), _volume(), _time(), _temp(), _fluid(NULL), _detectType(DETECT_NOT_SPECIFIED), _mixType(MIX_NOT_SPECIFIED), _outputName(NULL), _numDrops(-1), _destinationVolume(),_expression(NULL),_trueBranch(NULL),_nickname("")
 	{}
 
 	BioOperation(int id, OPERATION_TYPE op, Volume v, Fluid* f, Time t = Time()) //Dispense Operation.
-	: _ID(id), _opType(op), _volume(v), _time(t), _temp(), _fluid(f), _detectType(DETECT_NOT_SPECIFIED), _mixType(MIX_NOT_SPECIFIED), _outputName(NULL), _numDrops(-1), _destinationVolume(),_expression(NULL),_trueBranch(NULL)
+	: _ID(id), _opType(op), _volume(v), _time(t), _temp(), _fluid(f), _detectType(DETECT_NOT_SPECIFIED), _mixType(MIX_NOT_SPECIFIED), _outputName(NULL), _numDrops(-1), _destinationVolume(),_expression(NULL),_trueBranch(NULL),_nickname("")
 	{}
 
 	BioOperation(int id, OPERATION_TYPE op, Fluid* f, Time t = Time()) //Dispense Operation.
-	: _ID(id), _opType(op), _volume(), _time(t), _temp(), _fluid(f), _detectType(DETECT_NOT_SPECIFIED), _mixType(MIX_NOT_SPECIFIED), _outputName(NULL), _numDrops(-1), _destinationVolume(),_expression(NULL),_trueBranch(NULL)
+	: _ID(id), _opType(op), _volume(), _time(t), _temp(), _fluid(f), _detectType(DETECT_NOT_SPECIFIED), _mixType(MIX_NOT_SPECIFIED), _outputName(NULL), _numDrops(-1), _destinationVolume(),_expression(NULL),_trueBranch(NULL),_nickname("")
 	{}
 
-	BioOperation(int id, OPERATION_TYPE op, DETECT_TYPE type, Time t = Time()) //Detect Operation.
-	: _ID(id), _opType(op), _volume(), _time(t), _temp(), _fluid(NULL), _detectType(type), _mixType(MIX_NOT_SPECIFIED), _outputName(NULL), _numDrops(-1), _destinationVolume(),_expression(NULL),_trueBranch(NULL)
+	BioOperation(int id, OPERATION_TYPE op, DETECT_TYPE type, Time t = Time(),std::string nickname = "") //Detect Operation.
+	: _ID(id), _opType(op), _volume(), _time(t), _temp(), _fluid(NULL), _detectType(type), _mixType(MIX_NOT_SPECIFIED), _outputName(NULL), _numDrops(-1), _destinationVolume(),_expression(NULL),_trueBranch(NULL),_nickname("")
 	{}
 
 	BioOperation(int id, OPERATION_TYPE op, Temperature temp, Time t = Time()) //Heat/Cool/Store
-	:_ID(id), _opType(op), _volume(), _time(t), _temp(temp), _fluid(NULL), _detectType(DETECT_NOT_SPECIFIED), _mixType(MIX_NOT_SPECIFIED), _outputName(NULL), _numDrops(-1), _destinationVolume(),_expression(NULL),_trueBranch(NULL)
+	:_ID(id), _opType(op), _volume(), _time(t), _temp(temp), _fluid(NULL), _detectType(DETECT_NOT_SPECIFIED), _mixType(MIX_NOT_SPECIFIED), _outputName(NULL), _numDrops(-1), _destinationVolume(),_expression(NULL),_trueBranch(NULL),_nickname("")
 	{}
 
 	BioOperation(int id, OPERATION_TYPE op, MIX_TYPE mix, Time t = Time()) // Mix Operation
-	:_ID(id), _opType(op), _volume(), _time(t), _temp(), _fluid(NULL), _detectType(DETECT_NOT_SPECIFIED), _mixType(mix), _outputName(NULL), _numDrops(-1), _destinationVolume(),_expression(NULL),_trueBranch(NULL)
+	:_ID(id), _opType(op), _volume(), _time(t), _temp(), _fluid(NULL), _detectType(DETECT_NOT_SPECIFIED), _mixType(mix), _outputName(NULL), _numDrops(-1), _destinationVolume(),_expression(NULL),_trueBranch(NULL),_nickname("")
 	{}
 
 	BioOperation(int id, OPERATION_TYPE op, int numDrops, Time t = Time()) // Split Digital
-	:_ID(id), _opType(op), _volume(), _time(t), _temp(), _fluid(NULL), _detectType(DETECT_NOT_SPECIFIED), _mixType(MIX_NOT_SPECIFIED), _outputName(NULL), _numDrops(numDrops), _destinationVolume(),_expression(NULL),_trueBranch(NULL)
+	:_ID(id), _opType(op), _volume(), _time(t), _temp(), _fluid(NULL), _detectType(DETECT_NOT_SPECIFIED), _mixType(MIX_NOT_SPECIFIED), _outputName(NULL), _numDrops(numDrops), _destinationVolume(),_expression(NULL),_trueBranch(NULL),_nickname("")
 	{}
 
 	BioOperation(int id, OPERATION_TYPE op, Volume destinationVol, Time t = Time()) //Split Continuous Flow
-	:_ID(id), _opType(op), _volume(), _time(t), _temp(), _fluid(NULL), _detectType(DETECT_NOT_SPECIFIED), _mixType(MIX_NOT_SPECIFIED), _outputName(NULL), _numDrops(-1), _destinationVolume(destinationVol),_expression(NULL),_trueBranch(NULL)
+	:_ID(id), _opType(op), _volume(), _time(t), _temp(), _fluid(NULL), _detectType(DETECT_NOT_SPECIFIED), _mixType(MIX_NOT_SPECIFIED), _outputName(NULL), _numDrops(-1), _destinationVolume(destinationVol),_expression(NULL),_trueBranch(NULL),_nickname("")
 	{}
 
 	BioOperation(int id, OPERATION_TYPE op, Time t)// Store Operation
-	:_ID(id), _opType(op), _volume(), _time(t), _temp(), _fluid(NULL), _detectType(DETECT_NOT_SPECIFIED), _mixType(MIX_NOT_SPECIFIED), _outputName(NULL), _numDrops(-1), _destinationVolume(),_expression(NULL),_trueBranch(NULL)
+	:_ID(id), _opType(op), _volume(), _time(t), _temp(), _fluid(NULL), _detectType(DETECT_NOT_SPECIFIED), _mixType(MIX_NOT_SPECIFIED), _outputName(NULL), _numDrops(-1), _destinationVolume(),_expression(NULL),_trueBranch(NULL),_nickname("")
 	{}
 
 	BioOperation(int id, OPERATION_TYPE op, std::string outputDest, Time t = Time()) //Output/Waste
-	:_ID(id), _opType(op), _volume(), _time(t), _temp(), _fluid(NULL), _detectType(DETECT_NOT_SPECIFIED), _mixType(MIX_NOT_SPECIFIED), _outputName(new std::string(outputDest)), _numDrops(-1), _destinationVolume(),_expression(NULL),_trueBranch(NULL)
+	:_ID(id), _opType(op), _volume(), _time(t), _temp(), _fluid(NULL), _detectType(DETECT_NOT_SPECIFIED), _mixType(MIX_NOT_SPECIFIED), _outputName(new std::string(outputDest)), _numDrops(-1), _destinationVolume(),_expression(NULL),_trueBranch(NULL),_nickname("")
 	{}
 
-	BioOperation(int id, OPERATION_TYPE op, BioExpression* expression = NULL) //conditional
-	: _ID(id), _opType(op), _volume(), _time(), _temp(), _fluid(NULL), _detectType(DETECT_NOT_SPECIFIED), _mixType(MIX_NOT_SPECIFIED), _outputName(NULL), _numDrops(-1), _destinationVolume(),_expression(expression),_trueBranch(NULL)
+	BioOperation(int id, OPERATION_TYPE op, BioExpression* expression = NULL, std::string nickname ="") //conditional
+	: _ID(id), _opType(op), _volume(), _time(), _temp(), _fluid(NULL), _detectType(DETECT_NOT_SPECIFIED), _mixType(MIX_NOT_SPECIFIED), _outputName(NULL), _numDrops(-1), _destinationVolume(),_expression(expression),_trueBranch(NULL),_nickname(nickname)
 	{}
 
 
@@ -151,6 +151,7 @@ public:
 
 		return buffer;
 	}
+	BioExpression* Expression() {	return this->_expression; }
 };
 
 

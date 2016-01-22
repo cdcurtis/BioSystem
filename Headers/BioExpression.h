@@ -33,12 +33,20 @@ struct BioExpression
 	BioOperation * _terminalRHS;
 	double _variable;
 	double _constant;
+	std::string _lhsNickName;
+	std::string _rhsNickname;
 
 
 	//used for creating complex Expressions.
 	BioExpression(BioExpression* lhs, ConditionalOps condition, BioExpression* rhs);
 
 	BioExpression(ConditionalOps condition, BioExpression* notExpression);
+
+	//used terminal expressions that point to possible changing BioOperations;
+	BioExpression(std::string lhs, ConditionalOps condition, std::string rhs);
+	BioExpression(BioOperation* lhs, ConditionalOps condition, std::string rhs);
+	BioExpression(std::string lhs, ConditionalOps condition,  BioOperation* rhs);
+	BioExpression(std::string lhs , ConditionalOps condition, double constant);
 
 	//terminal Expressions
 	BioExpression(BioOperation* lhs, ConditionalOps condition, BioOperation* rhs);
