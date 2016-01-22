@@ -21,8 +21,9 @@ using namespace BioCoder;
 
 int main ()
 {
-//	BioSystemTest::NestedIFTest();
-	BioSystemTest::SimpleWhileSensorConditional();
+	BioSystemTest::NestedIFTest();
+//	BioSystemTest::SimpleWhileSensorConditional();
+//	BioSystemTest::NestedIFInWhile();
 	std::cout<<"Terminated \n";
 	return 0;
 }

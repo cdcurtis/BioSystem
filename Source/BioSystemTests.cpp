@@ -79,13 +79,57 @@ void BioSystemTest:: SimpleWhileSensorConditional()
 	bioCoder.tap(tube,Time(SECS, 10));
 
 	bioCoder.next_step();
-	BioOperation * weightReading2 = bioCoder.weigh(tube);
+	bioCoder.weigh(tube,"WeightSensor2");
 
 	bioCoder.next_step();
-	bioCoder.WHILE(weightReading1, EQUAL, weightReading2 );
+	bioCoder.WHILE(weightReading1, EQUAL, "WeightSensor2" );
 	bioCoder.incubate(tube,200, Time(SECS, 10));
-	weightReading2 = bioCoder.weigh(tube);
+	bioCoder.weigh(tube, "WeightSensor2");
 
+	bioCoder.END_WHILE();
+
+	bioCoder.next_step();
+	bioCoder.incubate(tube,ON_ICE, Time(MINS, 60));
+
+	bioCoder.end_protocol();
+
+
+	bioCoder.PrintLeveledProtocol();
+	bioCoder.PrintTree();
+
+}
+
+void BioSystemTest:: NestedIFInWhile()
+{
+	BioSystem bioCoder;
+
+	Fluid* blood = bioCoder.new_fluid("Blood",Volume(MICRO_LITER, 10));
+	Fluid* water = bioCoder.new_fluid("Water",Volume(MICRO_LITER, 10));
+
+	Container* tube = bioCoder.new_container(STERILE_MICROFUGE_TUBE2ML);
+
+	bioCoder.first_step();
+	bioCoder.measure_fluid(blood, tube);
+	bioCoder.measure_fluid(water, tube);
+
+	bioCoder.next_step();
+	BioOperation * weightReading1 = bioCoder.weigh(tube);
+	bioCoder.tap(tube,Time(SECS, 10));
+
+	bioCoder.next_step();
+	bioCoder.weigh(tube,"WeightSensor2");
+
+	bioCoder.next_step();
+	bioCoder.WHILE(weightReading1, EQUAL, "WeightSensor2" );
+	bioCoder.incubate(tube,200, Time(SECS, 10));
+	bioCoder.weigh(tube, "WeightSensor2");
+
+	bioCoder.next_step();
+	bioCoder.IF(weightReading1, LESS_THAN, .2);
+	bioCoder.measure_fluid(blood,tube);
+	bioCoder.vortex(tube);
+
+	bioCoder.END_IF();
 	bioCoder.END_WHILE();
 
 	bioCoder.next_step();

@@ -16,6 +16,7 @@ public:
 
 	static void NestedIFTest();
 	static void SimpleWhileSensorConditional();
+	static void NestedIFInWhile();
 };
 
 

@@ -62,7 +62,7 @@ public:
 	{}
 
 	BioOperation(int id, OPERATION_TYPE op, DETECT_TYPE type, Time t = Time(),std::string nickname = "") //Detect Operation.
-	: _ID(id), _opType(op), _volume(), _time(t), _temp(), _fluid(NULL), _detectType(type), _mixType(MIX_NOT_SPECIFIED), _outputName(NULL), _numDrops(-1), _destinationVolume(),_expression(NULL),_trueBranch(NULL),_nickname("")
+	: _ID(id), _opType(op), _volume(), _time(t), _temp(), _fluid(NULL), _detectType(type), _mixType(MIX_NOT_SPECIFIED), _outputName(NULL), _numDrops(-1), _destinationVolume(),_expression(NULL),_trueBranch(NULL),_nickname(nickname)
 	{}
 
 	BioOperation(int id, OPERATION_TYPE op, Temperature temp, Time t = Time()) //Heat/Cool/Store
@@ -89,8 +89,8 @@ public:
 	:_ID(id), _opType(op), _volume(), _time(t), _temp(), _fluid(NULL), _detectType(DETECT_NOT_SPECIFIED), _mixType(MIX_NOT_SPECIFIED), _outputName(new std::string(outputDest)), _numDrops(-1), _destinationVolume(),_expression(NULL),_trueBranch(NULL),_nickname("")
 	{}
 
-	BioOperation(int id, OPERATION_TYPE op, BioExpression* expression = NULL, std::string nickname ="") //conditional
-	: _ID(id), _opType(op), _volume(), _time(), _temp(), _fluid(NULL), _detectType(DETECT_NOT_SPECIFIED), _mixType(MIX_NOT_SPECIFIED), _outputName(NULL), _numDrops(-1), _destinationVolume(),_expression(expression),_trueBranch(NULL),_nickname(nickname)
+	BioOperation(int id, OPERATION_TYPE op, BioExpression* expression = NULL) //conditional
+	: _ID(id), _opType(op), _volume(), _time(), _temp(), _fluid(NULL), _detectType(DETECT_NOT_SPECIFIED), _mixType(MIX_NOT_SPECIFIED), _outputName(NULL), _numDrops(-1), _destinationVolume(),_expression(expression),_trueBranch(NULL),_nickname("")
 	{}
 
 
@@ -105,7 +105,10 @@ public:
 			sprintf(buffer,"Dispense ID:%i", _ID);
 			break;
 		case DETECT:
-			sprintf(buffer,"Detect ID:%i", _ID);
+			if(_nickname == "")
+				sprintf(buffer,"Detect ID:%i", _ID);
+			else
+				sprintf(buffer,"Detect \"%s\" ID:%i",_nickname.c_str(), _ID);
 			break;
 		case HEAT:
 			sprintf(buffer,"Heat ID:%i", _ID);

@@ -234,9 +234,9 @@ void BioSystem:: SetEndIfparents(BioOperation * operation, Container * container
 void BioSystem:: SetEndIfparents(BioOperation * operation)
 {
 	for(Container* container: usage_list_containers) {
-		std::cout <<"printing stack"<<std::endl;
-		container->PrintOpStack();
-		std::cout<<"END"<<std::endl;
+		//std::cout <<"printing stack"<<std::endl;
+		//container->PrintOpStack();
+		//std::cout<<"END"<<std::endl;
 
 		this->SetEndIfparents(operation, container);
 	}
@@ -1577,11 +1577,27 @@ void BioSystem:: IF(BioExpression* expression)
 
 void BioSystem:: IF(BioOperation* lhs, ConditionalOps condition, BioOperation* rhs)
 {
-	this->IF(new BioExpression(lhs,condition,rhs));
+	return this->IF(new BioExpression(lhs,condition,rhs));
 }
 void BioSystem:: IF(BioOperation* lhs, ConditionalOps condition, double constant)
 {
-	this->IF(new BioExpression(lhs,condition, constant));
+	return this->IF(new BioExpression(lhs,condition, constant));
+}
+void BioSystem:: IF(std::string lhs, ConditionalOps condition, std::string rhs)
+{
+	return this->IF(new BioExpression(lhs,condition, rhs));
+}
+void BioSystem:: IF(BioOperation* lhs, ConditionalOps condition, std::string rhs)
+{
+	return this->IF(new BioExpression(lhs,condition, rhs));
+}
+void BioSystem:: IF(std::string lhs, ConditionalOps condition,  BioOperation* rhs)
+{
+	return this->IF(new BioExpression(lhs,condition, rhs));
+}
+void BioSystem:: IF(std::string lhs , ConditionalOps condition, double constant)
+{
+	return this->IF(new BioExpression(lhs,condition,constant));
 }
 
 void BioSystem:: ELSE_IF(BioExpression* expression)
@@ -1598,6 +1614,22 @@ void BioSystem:: ELSE_IF(BioOperation* lhs, ConditionalOps condition, BioOperati
 	return this->ELSE_IF(new BioExpression(lhs,condition,rhs));
 }
 void BioSystem:: ELSE_IF(BioOperation* lhs, ConditionalOps condition, double constant)
+{
+	return this->ELSE_IF(new BioExpression(lhs,condition,constant));
+}
+void BioSystem:: ELSE_IF(std::string lhs, ConditionalOps condition, std::string rhs)
+{
+	return this->ELSE_IF(new BioExpression(lhs,condition, rhs));
+}
+void BioSystem:: ELSE_IF(BioOperation* lhs, ConditionalOps condition, std::string rhs)
+{
+	return this->ELSE_IF(new BioExpression(lhs,condition, rhs));
+}
+void BioSystem:: ELSE_IF(std::string lhs, ConditionalOps condition,  BioOperation* rhs)
+{
+	return this->ELSE_IF(new BioExpression(lhs,condition, rhs));
+}
+void BioSystem:: ELSE_IF(std::string lhs , ConditionalOps condition, double constant)
 {
 	return this->ELSE_IF(new BioExpression(lhs,condition,constant));
 }
@@ -1637,16 +1669,33 @@ void  BioSystem :: WHILE(BioExpression* expression)
 
 void BioSystem :: WHILE(BioOperation * lhs, ConditionalOps condition, BioOperation* rhs)
 {
-	this->WHILE(new BioExpression (lhs,condition, rhs));
+	return this->WHILE(new BioExpression (lhs,condition, rhs));
 }
 
 void BioSystem ::  WHILE(BioOperation* lhs, ConditionalOps condition, double constant)
 {
-	this ->WHILE(new BioExpression (lhs, condition, constant));
+	return this ->WHILE(new BioExpression (lhs, condition, constant));
 }
 void BioSystem:: WHILE(double variable, ConditionalOps condition, double constant, incrementor funct)
 {
-	this->WHILE( new BioExpression(variable, condition, constant, funct));
+	return this->WHILE( new BioExpression(variable, condition, constant, funct));
+}
+
+void BioSystem:: WHILE(std::string lhs, ConditionalOps condition, std::string rhs)
+{
+	return this->WHILE(new BioExpression(lhs,condition, rhs));
+}
+void BioSystem:: WHILE(BioOperation* lhs, ConditionalOps condition, std::string rhs)
+{
+	return this->WHILE(new BioExpression(lhs,condition, rhs));
+}
+void BioSystem:: WHILE(std::string lhs, ConditionalOps condition,  BioOperation* rhs)
+{
+	return this->WHILE(new BioExpression(lhs,condition, rhs));
+}
+void BioSystem:: WHILE(std::string lhs , ConditionalOps condition, double constant)
+{
+	return this->WHILE(new BioExpression(lhs,condition,constant));
 }
 
 void BioSystem :: END_WHILE()

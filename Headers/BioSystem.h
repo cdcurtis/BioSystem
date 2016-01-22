@@ -885,11 +885,19 @@ public:
 	void IF(BioExpression*);
 	void IF(BioOperation*, ConditionalOps op, BioOperation*);
 	void IF(BioOperation* lhs, ConditionalOps condition, double constant);
+	void IF(std::string lhs, ConditionalOps condition, std::string rhs);
+	void IF(BioOperation* lhs, ConditionalOps condition, std::string rhs);
+	void IF(std::string lhs, ConditionalOps condition,  BioOperation* rhs);
+	void IF(std::string lhs , ConditionalOps condition, double constant);
 	//void IF(double variable, ConditionalOps condition, double constant, incrementor funct);
 
 	void ELSE_IF(BioExpression*);
 	void ELSE_IF(BioOperation*, ConditionalOps op, BioOperation*);
 	void ELSE_IF(BioOperation* lhs, ConditionalOps condition, double constant);
+	void ELSE_IF(std::string lhs, ConditionalOps condition, std::string rhs);
+	void ELSE_IF(BioOperation* lhs, ConditionalOps condition, std::string rhs);
+	void ELSE_IF(std::string lhs, ConditionalOps condition,  BioOperation* rhs);
+	void ELSE_IF(std::string lhs , ConditionalOps condition, double constant);
 	//void ELSE_IF(double variable, ConditionalOps condition, double constant, incrementor funct);
 
 	void ELSE();
@@ -899,6 +907,10 @@ public:
 	void WHILE(BioOperation*, ConditionalOps op, BioOperation*);
 	void WHILE(BioOperation* lhs, ConditionalOps condition, double constant);
 	void WHILE(double variable, ConditionalOps condition, double constant, incrementor funct);
+	void WHILE(std::string lhs, ConditionalOps condition, std::string rhs);
+	void WHILE(BioOperation* lhs, ConditionalOps condition, std::string rhs);
+	void WHILE(std::string lhs, ConditionalOps condition,  BioOperation* rhs);
+	void WHILE(std::string lhs , ConditionalOps condition, double constant);
 
 	void END_WHILE();
 
