@@ -32,6 +32,7 @@ public:
 	int _ID;
 	std::vector<BioOperation*> _parents;
 	std::vector<BioOperation*> _children;
+	std::vector<BioOperation*> _controlDependant;
 
 	OPERATION_TYPE _opType;
 	Volume _volume;
@@ -108,7 +109,7 @@ public:
 			if(_nickname == "")
 				sprintf(buffer,"Detect ID:%i", _ID);
 			else
-				sprintf(buffer,"Detect \"%s\" ID:%i",_nickname.c_str(), _ID);
+				sprintf(buffer,"Detect \'%s\' ID:%i",_nickname.c_str(), _ID);
 			break;
 		case HEAT:
 			sprintf(buffer,"Heat ID:%i", _ID);
@@ -138,7 +139,7 @@ public:
 			sprintf(buffer,"else ID:%i", _ID);
 			break;
 		case WHILE_OP:
-			sprintf(buffer,"while ID:%i", _ID);
+			sprintf(buffer,"whileID:%i", _ID);
 			break;
 		case END_IF_OP:
 			sprintf(buffer,"END_IF ID:%i", _ID);

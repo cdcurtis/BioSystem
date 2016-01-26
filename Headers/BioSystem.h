@@ -75,7 +75,7 @@ class BioSystem
 	std::vector<BioOperation*> _roots; //Dilution Tree
 	std::vector<std::vector <BioOperation*> > _userDefinedLevelTree; //steppedProtocol
 	//std::vector<Container*> _containers;
-	std::vector<Fluid*> _fluids;
+	//std::vector<Fluid*> _fluids;
 
 
 	//Helper functions
@@ -126,7 +126,9 @@ class BioSystem
 public:
 	//Debug Tools
 	void PrintLeveledProtocol();
-	void PrintTree();
+	void PrintTree(std::ostream& out = std::cout);
+	void PrintDotFormat (std::ostream& out = std::cout);
+	void PrintTreeVisualization(std::string filename = "");
 
 
 

@@ -17,6 +17,7 @@ public:
 	static void NestedIFTest();
 	static void SimpleWhileSensorConditional();
 	static void NestedIFInWhile();
+	static void SimpleProtocol();
 };
 
 

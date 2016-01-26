@@ -11,6 +11,33 @@
 using namespace BioCoder;
 
 
+void BioSystemTest::SimpleProtocol()
+{
+	BioSystem bioCoder;
+
+	Fluid* blood = bioCoder.new_fluid("Blood",Volume(MICRO_LITER, 10));
+	Fluid* water = bioCoder.new_fluid("Water",Volume(MICRO_LITER, 10));
+
+	Container* tube = bioCoder.new_container(STERILE_MICROFUGE_TUBE2ML);
+
+	bioCoder.first_step();
+	bioCoder.measure_fluid(blood, tube);
+	bioCoder.measure_fluid(water, tube);
+
+	bioCoder.next_step();
+	bioCoder.tap(tube,Time(SECS, 10));
+
+	bioCoder.next_step();
+	bioCoder.incubate(tube, 100,Time(SECS,10));
+
+	bioCoder.end_protocol();
+
+
+//	bioCoder.PrintLeveledProtocol();
+	bioCoder.PrintTreeVisualization("SimpleProtocol");
+
+}
+
 void BioSystemTest:: NestedIFTest()
 {
 	BioSystem bioCoder;
@@ -58,6 +85,7 @@ void BioSystemTest:: NestedIFTest()
 
 	bioCoder.PrintLeveledProtocol();
 	bioCoder.PrintTree();
+	bioCoder.PrintTreeVisualization("NestedIF");
 
 }
 
@@ -96,6 +124,7 @@ void BioSystemTest:: SimpleWhileSensorConditional()
 
 	bioCoder.PrintLeveledProtocol();
 	bioCoder.PrintTree();
+	bioCoder.PrintTreeVisualization("SimpleWhile");
 
 }
 
@@ -140,5 +169,6 @@ void BioSystemTest:: NestedIFInWhile()
 
 	bioCoder.PrintLeveledProtocol();
 	bioCoder.PrintTree();
+	bioCoder.PrintTreeVisualization("IfinWhile");
 
 }

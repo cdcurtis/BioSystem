@@ -6,11 +6,13 @@
  */
 
 #include <iostream>
+#include <fstream>
 #include <assert.h>
 #include <cstdio>
 #include <cstdlib>
 #include <cstring>
 #include <stdio.h>
+
 #include "../Headers/BioSystem.h"
 
 namespace BioCoder
@@ -123,6 +125,13 @@ void BioSystem :: SetOpsParent(BioOperation * op, Container * container)
 
 	//if this is the first instruction after an if/else if/ else/ while. this is the instruction to execute for true branch.
 	if(parent->_opType == IF_OP || parent->_opType == ELSE_IF_OP || parent->_opType == ELSE_OP  || parent->_opType == WHILE_OP ){
+		if (op->_opType == DISPENSE){//this is a control dependant dispense.
+			op->_controlDependant.push_back(parent);
+
+			if(parent->_trueBranch ==NULL)
+				parent->_trueBranch = op;
+			return;
+		}
 		if (!(op->_opType == ELSE_IF_OP || op->_opType == ELSE_OP)) {
 			//else if and else can never be the target of a true branch.
 			parent->_trueBranch = op;
@@ -133,6 +142,7 @@ void BioSystem :: SetOpsParent(BioOperation * op, Container * container)
 			return;
 
 		}
+
 	}
 
 	if (op->_opType == DISPENSE || parent->_opType == OUTPUT || parent->_opType == WASTE)
@@ -481,21 +491,70 @@ void BioSystem :: PrintLeveledProtocol()
 	}
 }
 
-void BioSystem :: PrintTree()
+void BioSystem :: PrintTree(std::ostream & out)
+{
+
+	for(std::vector< BioOperation*> op_vector: this->_userDefinedLevelTree)
+	{
+		for(BioOperation* op: op_vector) {
+			for (BioOperation* controlParent: op->_controlDependant) {
+				out <<controlParent->_ID  << " ==>> " << op->_ID;
+				if(controlParent->_trueBranch == op)
+					out<<"[label=\"" << *controlParent->_expression << "\"]";
+				out << ";" << std::endl;
+			}
+
+			for (BioOperation* childOp: op->_children){
+				out << op->_ID << " -> " << childOp->_ID;
+				if(op->_opType == IF_OP || op->_opType == ELSE_IF_OP || op->_opType == WHILE_OP)
+					if(op->_trueBranch == childOp)
+						out<<"[label=\"" << *op->_expression << "\"]";
+				out<< ";"<<std::endl;
+			}
+		}
+	}
+}
+void BioSystem :: PrintDotFormat(std::ostream & out)
 {
 	for(std::vector< BioOperation*> op_vector: this->_userDefinedLevelTree)
 	{
 		for(BioOperation* op: op_vector)
-			for (BioOperation* childOp: op->_children){
-				std::cout << op->_ID << "->" << childOp->_ID;
-				if(op->_opType == IF_OP || op->_opType == ELSE_IF_OP || op->_opType == WHILE_OP)
-					if(op->_trueBranch == childOp)
-						std::cout<<" *(" << *op->_expression << ")";
-				std:: cout<< std::endl;
+			out << op->_ID << " [label = \"" << op->Name() << "\"]" << std::endl;
+	}
+	for(std::vector< BioOperation*> op_vector: this->_userDefinedLevelTree)
+	{
+		for(BioOperation* op: op_vector){
+			for (BioOperation* controlParent: op->_controlDependant){
+				out <<controlParent->_ID  << " -> " << op->_ID << " [style=dotted]";
+				if(controlParent->_trueBranch == op)
+					out<<"[label=\"" << *controlParent->_expression << "\"]";
+				out << std::endl;
 			}
+
+			for (BioOperation* childOp: op->_children){
+				//out << op->_ID << " [label = \"" << op->Name() << "\"]";
+				out << op->_ID << " -> " << childOp->_ID;
+				if(op->_opType == IF_OP || op->_opType == ELSE_IF_OP || op->_opType == WHILE_OP)
+					if(op->_trueBranch == childOp){
+						out<<" [label=\"" << *op->_expression << "\", style=\"bold\"]";
+					}
+				out<<std::endl;
+			}
+		}
 	}
 }
 
+void BioSystem:: PrintTreeVisualization(std::string fileName)
+{
+	if(fileName != "")
+		fileName= fileName + ".dot";
+	std:: ostream& out = (fileName != "") ? *(new std::ofstream(fileName.c_str())) : std::cout;
+
+	out << "digraph dotyGraph{" << std::endl;
+	this->PrintDotFormat(out);
+	out << "}" << std::endl;
+
+}
 void BioSystem :: start_protocol(std::string name)
 {	//BioCoder Legacy
 	filename = name;
@@ -1366,7 +1425,7 @@ void BioSystem:: drain(Container* container1, std::string outputSink)
 	this->BioGraphMaintance(waste);
 	this->ClearContainerOpList(container1);
 	//Removed since Drain should not be a parent of anyone.
-	this->AddOpToContainer(waste, container1);
+	//this->AddOpToContainer(waste, container1);
 
 	fprintf(fp,"Drain %s.<br>", container1->name.c_str());
 	container1->volume = 0;
