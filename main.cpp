@@ -21,10 +21,16 @@ using namespace BioCoder;
 
 int main ()
 {
-	BioSystemTest::SimpleProtocol();
-	BioSystemTest::NestedIFTest();
-	BioSystemTest::SimpleWhileSensorConditional();
-	BioSystemTest::NestedIFInWhile();
+	//BioSystemTest::SimpleProtocol();
+	//BioSystemTest::NestedIFTest();
+	//BioSystemTest::SimpleWhileSensorConditional();
+	//BioSystemTest::NestedIFInWhile();
+	BioSystemTest::SimplePCRLoop();
+	//BioSystemTest::ProbablisticPCR();
+	//BioSystemTest::PCRDropletReplacement();
+
+	std::string foo;
+	//std::cin>>foo;
 	std::cout<<"Terminated \n";
 	return 0;
 }

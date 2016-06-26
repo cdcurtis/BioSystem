@@ -1,0 +1,24 @@
+digraph dotyGraph{
+0 [label = "Dispense ID:0"]
+1 [label = "Dispense ID:1"]
+2 [label = "Detect ID:2"]
+3 [label = "Mix ID:3"]
+4 [label = "Detect 'WeightSensor2' ID:4"]
+5 [label = "whileID:5"]
+6 [label = "Heat ID:6"]
+7 [label = "Detect 'WeightSensor2' ID:7"]
+8 [label = "END_WHILE ID:8"]
+9 [label = "Cool ID:9"]
+10 [label = "Output ID:10"]
+0 -> 2
+1 -> 2
+2 -> 3
+3 -> 4
+4 -> 5
+5 -> 6 [label="Detect ID:2 == WeightSensor2", style="bold"]
+5 -> 9
+6 -> 7
+7 -> 8
+8 -> 5
+9 -> 10
+}

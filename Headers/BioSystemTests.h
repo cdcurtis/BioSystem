@@ -18,6 +18,11 @@ public:
 	static void SimpleWhileSensorConditional();
 	static void NestedIFInWhile();
 	static void SimpleProtocol();
+
+
+	static void SimplePCRLoop();
+	static void ProbablisticPCR();
+	static void PCRDropletReplacement();
 };
 
 
