@@ -18,6 +18,7 @@
 
 #include "BioOperation.h"
 #include "Conditional.h"
+#include "ControlFlowGraph.h"
 
 
 
@@ -28,9 +29,9 @@ class BioSystem
 {
 	int _opNum;
 	int _currentStep;
+	int _containerID;
 
-
-
+	ControlFlowGraph _cfg;
 	int total_time_required;
 	FILE * fp;
 	int options_flag;
@@ -83,6 +84,7 @@ class BioSystem
 	void ClearAllContainerOpList(BioOperation*);
 	void ClearContainerOpList(Container *, BioOperation* op = NULL);
 
+	void AddOpToCFG(BioOperation*, Container * );
 	void AddOpToContainer(BioOperation* , Container * );
 	void BioGraphMaintance(BioOperation *);
 	void SetOpsParent(BioOperation * );
@@ -137,7 +139,8 @@ public:
 	BioSystem(std:: string name = "BioCoderProtocol"): _opNum(0), _currentStep(-1)
 	{
 		equip_no = microfuge_no = centrifuge_no = incubator_no = electrophoresis_no = mortar_no = thermocycler_no = electro_no = shaker_no = spectrophotometer_no = cont_no = 0;
-		list_fluid_no = list_container_no = 0;
+		list_fluid_no = list_container_no = _containerID = 0;
+
 		start_protocol(name);
 	}
 
@@ -821,7 +824,7 @@ public:
 	\par Example:
 	\code sequencing(eppendorf); \endcode
 	\par Output:
-	\htmlonly Dilute to <font color=#357EC7>100ng/ µL</font> and send <font color=#357EC7>1 µg (10 µL)</font> for sequencing. \endhtmlonly
+	\htmlonly Dilute to <font color=#357EC7>100ng/ ï¿½L</font> and send <font color=#357EC7>1 ï¿½g (10 ï¿½L)</font> for sequencing. \endhtmlonly
 	\sa electrophoresis(), nanodrop()
 	 */
 	BioOperation * sequencing(Container* container1, std::string nickname = "");
@@ -915,6 +918,9 @@ public:
 	void WHILE(std::string lhs , ConditionalOps condition, double constant);
 
 	void END_WHILE();
+
+	void LOOP (int times);
+	void END_LOOP();
 
 };
 

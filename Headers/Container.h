@@ -18,7 +18,7 @@ namespace BioCoder
 struct Container
 {
 	//data members
-
+	int uniqueID;
 	std::vector<BioOperation*> _instructionStack;
 	enum CONTAINER_TYPE id;/*!< The container's id. */
 	Fluid * contents;
@@ -30,12 +30,12 @@ struct Container
 	int usage_index;/*!< Used internally to track the usage of the container. */
 	//list<string> tLinkName;/*<translator Link Name:  Used to have an identifier for the links between the different nodes*/
 
-	Container()
-	:id(STERILE_MICROFUGE_TUBE),contents(NULL), volume(0), name(""),type(FLUID),used(0),usage_index(0)
+	Container(int ID)
+	:id(STERILE_MICROFUGE_TUBE),contents(NULL), volume(0), name(""),type(FLUID),used(0),usage_index(0),uniqueID(ID)
 	{}
 
 	Container(const Container & c)
-	:id(c.id),contents(c.contents),volume(c.volume),name(c.name),type(c.type),used(c.used),usage_index(c.usage_index)
+	:id(c.id),contents(c.contents),volume(c.volume),name(c.name),type(c.type),used(c.used),usage_index(c.usage_index),uniqueID(c.uniqueID)
 	{}
 
 	void PrintOpStack()

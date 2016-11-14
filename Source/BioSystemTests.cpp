@@ -207,6 +207,7 @@ void BioSystemTest:: SimplePCRLoop()
 	bioCoder.PrintTreeVisualization("SimplePCRLoop");
 
 }
+
 void BioSystemTest:: ProbablisticPCR()
 {
 	int Total = 15;
@@ -262,6 +263,7 @@ void BioSystemTest:: ProbablisticPCR()
 	bioCoder.PrintTree();
 	bioCoder.PrintTreeVisualization("ProbablisticPCR");
 }
+
 void BioSystemTest:: PCRDropletReplacement()
 {
 	int TotalThermo = 9;
@@ -286,7 +288,13 @@ void BioSystemTest:: PCRDropletReplacement()
 	bioCoder.next_step();
 	bioCoder.store_for(tube,95,Time(SECS,45));
 
-	for(int i = 0 ; i < TotalThermo; ++i){
+	//for(int i = 0 ; i < TotalThermo; ++i){
+	std::cout<<"Debug statement"<<std::endl;
+
+	bioCoder.next_step();
+	bioCoder.LOOP(TotalThermo);
+
+	std::cout<<"Debug statement2"<<std::endl;
 		bioCoder.next_step();
 		bioCoder.store_for(tube,95,Time(SECS,20));
 
@@ -296,7 +304,7 @@ void BioSystemTest:: PCRDropletReplacement()
 		bioCoder.next_step();
 		bioCoder.IF("WieghtSensor",LESS_THAN, 3.57);
 		bioCoder.next_step();
-		bioCoder.measure_fluid(PCRMix,tube);
+		bioCoder.measure_fluid(PCRMix, tube);
 
 		bioCoder.next_step();
 		bioCoder.store_for(tube, 95,Time(SECS,45));
@@ -313,17 +321,189 @@ void BioSystemTest:: PCRDropletReplacement()
 
 		bioCoder.next_step();
 		bioCoder.store_for(tube,68,Time(SECS,45));
-	}
-	bioCoder.next_step();
-	bioCoder.store_for(tube,68,Time(MINS,5));
+		std::cout<<"Debug statement3"<<std::endl;
+		bioCoder.END_LOOP();
+		std::cout<<"Debug statement4"<<std::endl;
+
 
 	bioCoder.next_step();
+	bioCoder.store_for(tube,68,Time(MINS,5));
+	std::cout<<"Debug statement5"<<std::endl;
+	bioCoder.next_step();
 	bioCoder.drain(tube,"PCR");
+	std::cout<<"Debug statement6"<<std::endl;
 	bioCoder.end_protocol();
 
 
+	std::cout<<"Debug statemen7"<<std::endl;
 	bioCoder.PrintLeveledProtocol();
 	bioCoder.PrintTree();
 	bioCoder.PrintTreeVisualization("PCRReplacement");
 
+}
+
+void BioSystemTest::PCR(){
+	BioSystem bioCoder;
+
+	Fluid *PCRMix = bioCoder.new_fluid("PCRMasterMix", Volume(MICRO_LITER,10));
+	Fluid *SeperationMedium = bioCoder.new_fluid("Seperation Medium",Volume(MICRO_LITER,10));
+	Container* tube = bioCoder.new_container(STERILE_MICROFUGE_TUBE2ML);
+
+	bioCoder.first_step();
+	bioCoder.measure_fluid(PCRMix,tube);
+
+	bioCoder.next_step();
+	bioCoder.incubate(tube,95,Time(5,SECS));
+
+	bioCoder.next_step();
+	bioCoder.LOOP(20);
+
+	bioCoder.next_step();
+	bioCoder.incubate(tube,53,Time(15,SECS));
+
+	bioCoder.next_step();
+	bioCoder.incubate(tube,72,Time(10,SECS));
+	bioCoder.END_LOOP();
+
+	bioCoder.next_step();
+	bioCoder.ce_detect(tube,5,236,SeperationMedium);
+
+	bioCoder.next_step();
+	bioCoder.measure_fluorescence(tube,Time(3,MINS));
+
+	bioCoder.next_step();
+	bioCoder.end_protocol();
+}
+/*Result1 = Mix 10µL of Glucose with 10µL of Reagent for 10s
+Reading1 = Measure the fluorescence of Result1 for 30s
+
+Result2 = Mix 10µL of Glucose with 20µL of Reagent for 10s
+Reading2 = Measure the fluorescence of Result2 for 30s
+
+Result3 = Mix 10µL of Glucose with 40µL of Reagent for 10s
+Reading3 = Measure the fluorescence of Result3 for 30s
+
+Result4 = Mix 10µL of Glucose with 80µL of Reagent for 10s
+Reading4 = Measure the fluorescence of Result4 for 30s
+
+Result5 = Mix 10µL of Sample with 10µL of Reagent for 10s
+Reading5 = Measure the fluorescence of Result5 for 30s
+
+ * */
+void BioSystemTest:: GlucoseDetection(){
+	BioSystem bioCoder;
+
+	Fluid *Glucose = bioCoder.new_fluid("Ion exchange beads", Volume(MICRO_LITER,160));
+	Fluid *Reagent = bioCoder.new_fluid("Fluoride ions",Volume(MICRO_LITER,50));
+	Fluid *Sample = bioCoder.new_fluid("HCL",Volume(MICRO_LITER,10));
+
+	Container* tube = bioCoder.new_container(STERILE_MICROFUGE_TUBE2ML);
+	Container* tube2 = bioCoder.new_container(STERILE_MICROFUGE_TUBE2ML);
+	Container* tube3 = bioCoder.new_container(STERILE_MICROFUGE_TUBE2ML);
+	Container* tube4 = bioCoder.new_container(STERILE_MICROFUGE_TUBE2ML);
+	Container* tube5 = bioCoder.new_container(STERILE_MICROFUGE_TUBE2ML);
+
+	bioCoder.first_step();
+	bioCoder.measure_fluid(Glucose,Volume(MICRO_LITER,10),tube);
+	bioCoder.measure_fluid(Glucose,Volume(MICRO_LITER,10),tube2);
+	bioCoder.measure_fluid(Glucose,Volume(MICRO_LITER,10),tube3);
+	bioCoder.measure_fluid(Glucose,Volume(MICRO_LITER,10),tube4);
+	bioCoder.measure_fluid(Glucose,Volume(MICRO_LITER,10),tube5);
+
+	bioCoder.measure_fluid(Reagent,Volume(MICRO_LITER,10),tube);
+	bioCoder.measure_fluid(Reagent,Volume(MICRO_LITER,20),tube2);
+	bioCoder.measure_fluid(Reagent,Volume(MICRO_LITER,40),tube3);
+	bioCoder.measure_fluid(Reagent,Volume(MICRO_LITER,80),tube4);
+
+	bioCoder.measure_fluid(Sample,Volume(MICRO_LITER,80),tube5);
+
+	bioCoder.next_step();
+	bioCoder.measure_fluorescence(tube,Time(5,SECS));
+	bioCoder.measure_fluorescence(tube2,Time(5,SECS));
+	bioCoder.measure_fluorescence(tube3,Time(5,SECS));
+	bioCoder.measure_fluorescence(tube4,Time(5,SECS));
+	bioCoder.measure_fluorescence(tube5,Time(5,SECS));
+
+	bioCoder.next_step();
+	bioCoder.end_protocol();
+}
+
+void BioSystemTest::ImageProbSynthesis(){
+	BioSystem bioCoder;
+
+	Fluid *IonBeads = bioCoder.new_fluid("Ion exchange beads", Volume(MICRO_LITER,10));
+	Fluid *Fluoride = bioCoder.new_fluid("Fluoride ions",Volume(MICRO_LITER,10));
+	Fluid *HCL = bioCoder.new_fluid("HCL",Volume(MICRO_LITER,10));
+	Fluid *MeCNSolution = bioCoder.new_fluid("MeCN solution",Volume(MICRO_LITER,10));
+
+	Container* tube = bioCoder.new_container(STERILE_MICROFUGE_TUBE2ML);
+
+	bioCoder.first_step();
+	bioCoder.measure_fluid(IonBeads,tube);
+	bioCoder.measure_fluid(Fluoride,tube);
+
+	bioCoder.next_step();
+	bioCoder.vortex(tube,Time(30,SECS));
+
+	bioCoder.next_step();
+	bioCoder.incubate(tube,100,Time(30,SECS));
+
+	bioCoder.next_step();
+	bioCoder.incubate(tube,120,Time(30,SECS));
+
+	bioCoder.next_step();
+	bioCoder.incubate(tube,135, Time(3,MINS));
+
+	bioCoder.next_step();
+	bioCoder.measure_fluid(MeCNSolution,tube);
+
+	bioCoder.next_step();
+	bioCoder.vortex(tube,Time(30,SECS));
+
+	bioCoder.next_step();
+	bioCoder.incubate(tube,100,Time(30,SECS));
+
+	bioCoder.next_step();
+	bioCoder.incubate(tube,120,Time(50,SECS));
+
+	bioCoder.next_step();
+	bioCoder.measure_fluid(HCL,tube);
+
+	bioCoder.next_step();
+	bioCoder.vortex(tube,Time(60,SECS));
+
+	bioCoder.next_step();
+	bioCoder.incubate(tube,60,Time(60,SECS));
+
+	bioCoder.next_step();
+	bioCoder.end_protocol();
+}
+/*Mixture = Mix <no value>µL of Sample with <no value>µL of Reagent for 50s
+Perform Capillary Electrophoresis ( 9 cm at 223 V/cm) on Mixture Seperate with <no value>µL of electrophoresis buffer
+Measure the fluorescence of Mixture for 10s
+*/
+void BioSystemTest::neurotransmitterSensing(){
+	BioSystem bioCoder;
+
+	Fluid *Sample = bioCoder.new_fluid("Sample", Volume(MICRO_LITER,10));
+	Fluid *Reagent = bioCoder.new_fluid("Reagent",Volume(MICRO_LITER,10));
+	Fluid *SeperationMedium = bioCoder.new_fluid("Seperation Medium",Volume(MICRO_LITER,10));
+
+	Container* tube = bioCoder.new_container(STERILE_MICROFUGE_TUBE2ML);
+
+	bioCoder.first_step();
+	bioCoder.measure_fluid(Sample,tube);
+	bioCoder.measure_fluid(Reagent,tube);
+
+	bioCoder.next_step();
+	bioCoder.vortex(tube,Time(50,SECS));
+
+	bioCoder.next_step();
+	bioCoder.ce_detect(tube,9,223,SeperationMedium);
+
+	bioCoder.next_step();
+	bioCoder.measure_fluorescence(tube,Time(10,SECS));
+
+	bioCoder.next_step();
+	bioCoder.end_protocol();
 }

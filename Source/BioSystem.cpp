@@ -77,6 +77,10 @@ void BioSystem :: ClearContainerOpList(Container * c, BioOperation* operation)
 
 	}
 }
+void BioSystem::AddOpToCFG(BioOperation* op, Container * container)
+{
+	this->_cfg.AddOp(op,container->uniqueID);
+}
 void BioSystem :: AddOpToContainer(BioOperation* op, Container * container)
 {
 	container->_instructionStack.push_back(op);
@@ -114,7 +118,7 @@ void BioSystem :: SetOpsParent(BioOperation * op, Container * container)
 
 
 	//if this is the operation after the END WHILE. Take the END_WHILE child (While Header) and set that as your parent.
-	if (parent->_opType == END_WHILE_OP){
+	if (parent->_opType == END_WHILE_OP || parent->_opType == END_LOOP_OP){
 		BioOperation * whileHeader = parent->_children.at(0);
 
 		//sets false branch.
@@ -124,7 +128,7 @@ void BioSystem :: SetOpsParent(BioOperation * op, Container * container)
 	}
 
 	//if this is the first instruction after an if/else if/ else/ while. this is the instruction to execute for true branch.
-	if(parent->_opType == IF_OP || parent->_opType == ELSE_IF_OP || parent->_opType == ELSE_OP  || parent->_opType == WHILE_OP ){
+	if(parent->_opType == IF_OP || parent->_opType == ELSE_IF_OP || parent->_opType == ELSE_OP  || parent->_opType == WHILE_OP || parent->_opType == LOOP_OP ){
 		if (op->_opType == DISPENSE){//this is a control dependant dispense.
 			op->_controlDependant.push_back(parent);
 
@@ -158,7 +162,7 @@ void BioSystem :: SetOpsParent(BioOperation * op, Container * container)
 	{
 		parent = container->_instructionStack.at(index);
 
-		if(parent->_opType == IF_OP || parent->_opType == ELSE_IF_OP || parent->_opType == ELSE_OP || parent->_opType == WHILE_OP ){
+		if(parent->_opType == IF_OP || parent->_opType == ELSE_IF_OP || parent->_opType == ELSE_OP || parent->_opType == WHILE_OP || parent->_opType == LOOP_OP ){
 			if (op->_opType == ELSE_IF_OP || op->_opType == ELSE_OP) { // set the false branch.
 				parent->_children.push_back(op);
 				op->_parents.push_back(parent);
@@ -835,7 +839,7 @@ Container * BioSystem :: new_container(enum CONTAINER_TYPE cont_id)
 
 Container * BioSystem :: new_container(enum CONTAINER_TYPE cont_id, Fluid* fluid1)
 {
-	Container * result = new Container();
+	Container * result = new Container(this->_containerID++);
 	result->type = CONTAINER;
 	if(fluid1 != NULL)
 		result->contents = fluid1;
@@ -1267,21 +1271,21 @@ void BioSystem:: store_for(Container* container, float temp, Time time1)
 	BioOperation* operation;
 	if(temp == ON_ICE)
 	{
-		operation = new BioOperation(this->_opNum++,COOL,temp,time1);
+		operation = new BioOperation(this->_opNum++,COOL,Temperature(CELSIUS,temp),time1);
 		fprintf(fp, "Store ");
 		check_container(container);
 		fprintf(fp, " <b><font color=#357EC7>on ice</font></b> for ");
 	}
 	else if(temp == BOILING_WATER)
 	{
-		operation = new BioOperation(this->_opNum++,HEAT,temp,time1);
+		operation = new BioOperation(this->_opNum++,HEAT,Temperature(CELSIUS,temp),time1);
 		fprintf(fp, "Immerse ");
 		check_container(container);
 		fprintf(fp, " in boiling water for ");
 	}
 	else if (temp == ROOM_TEMPERATURE)
 	{
-		operation = new BioOperation(this->_opNum++,HEAT,temp,time1);
+		operation = new BioOperation(this->_opNum++,HEAT,Temperature(CELSIUS,temp),time1);
 		fprintf(fp, "Store ");
 		check_container(container);
 		fprintf(fp, " at <b><font color=#357EC7><b><font color=#357EC7>room temperature</font></b></font></b> for ");
@@ -1289,9 +1293,9 @@ void BioSystem:: store_for(Container* container, float temp, Time time1)
 	else
 	{
 		if (temp > ROOM_TEMPERATURE)
-			operation = new BioOperation(this->_opNum++,HEAT,temp,time1);
+			operation = new BioOperation(this->_opNum++,HEAT,Temperature(CELSIUS,temp),time1);
 		else
-			operation = new BioOperation(this->_opNum++,COOL,temp,time1);
+			operation = new BioOperation(this->_opNum++,COOL,Temperature(CELSIUS,temp),time1);
 
 		fprintf(fp, "Store ");
 		check_container(container);
@@ -1327,7 +1331,7 @@ void BioSystem:: store_for(Container* container, float temp, Time time1, STORAGE
 	if(time1.GetTimeUnits() == TIME_NOT_SPECIFIED)
 		time1.display_time(fp,option_no,options_flag,total_time_required);
 
-	BioOperation* store = new BioOperation(this->_opNum++,STORE,temp,time1);
+	BioOperation* store = new BioOperation(this->_opNum++,STORE,Temperature(CELSIUS,temp),time1);
 	this->SetOpsParent(store,container);
 	this->BioGraphMaintance(store);
 	this->ClearContainerOpList(container);
@@ -1530,7 +1534,7 @@ BioOperation * BioSystem:: electrophoresis(Container* container1, float agar_con
 }
 BioOperation * BioSystem:: sequencing(Container* container1, std::string nickname)
 {
-	fprintf(fp,"Dilute %s to <font color=#357EC7>100ng/ µl</font> and send <font color=#357EC7>1 µg (10 µL)</font> for sequencing.<br>", container1->contents->new_name.c_str());
+	fprintf(fp,"Dilute %s to <font color=#357EC7>100ng/ ï¿½l</font> and send <font color=#357EC7>1 ï¿½g (10 ï¿½L)</font> for sequencing.<br>", container1->contents->new_name.c_str());
 
 	BioOperation *detect = new BioOperation(this->_opNum++, DETECT, SEQUENCING, Time(), nickname );
 	this->SetOpsParent(detect,container1);
@@ -1713,6 +1717,25 @@ void  BioSystem:: END_IF()
 	this->ClearAllContainerOpList(end_if);
 	this->AddOPToAllContainers(end_if);
 
+}
+
+void BioSystem :: LOOP (int times)
+{
+	BioOperation* loop = new BioOperation(this->_opNum++, LOOP_OP, NULL,times);
+	this->SetOpsParent(loop );
+	this->BioGraphMaintance(loop );
+	this->ClearAllContainerOpList(loop );
+	this->AddOPToAllContainers(loop );
+
+}
+void BioSystem :: END_LOOP()
+{
+	BioOperation* end_Loop = new BioOperation(this->_opNum++, END_LOOP_OP);
+
+	this->SetOpsParent(end_Loop);
+	this->BioGraphMaintance(end_Loop);
+	this->ClearAllContainerOpList(end_Loop);
+	this->AddOPToAllContainers(end_Loop);
 }
 
 void  BioSystem :: WHILE(BioExpression* expression)

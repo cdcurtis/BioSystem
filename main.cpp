@@ -25,9 +25,9 @@ int main ()
 	//BioSystemTest::NestedIFTest();
 	//BioSystemTest::SimpleWhileSensorConditional();
 	//BioSystemTest::NestedIFInWhile();
-	BioSystemTest::SimplePCRLoop();
+	//BioSystemTest::SimplePCRLoop();
 	//BioSystemTest::ProbablisticPCR();
-	//BioSystemTest::PCRDropletReplacement();
+	BioSystemTest::PCRDropletReplacement();
 
 	std::string foo;
 	//std::cin>>foo;

@@ -23,6 +23,10 @@ public:
 	static void SimplePCRLoop();
 	static void ProbablisticPCR();
 	static void PCRDropletReplacement();
+	static void PCR();
+	static void GlucoseDetection();
+	static void ImageProbSynthesis();
+	static void neurotransmitterSensing();
 };
 
 

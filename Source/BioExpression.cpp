@@ -81,7 +81,7 @@ BioExpression:: BioExpression(std::string lhs, ConditionalOps condition,  BioOpe
 }
 
 BioExpression:: BioExpression(std::string lhs , ConditionalOps condition, double constant)
-:_fucnt(NULL),_lhs(NULL), _rhs(NULL),_conditionalOperation(condition), _terminalLHS(NULL),_terminalRHS(NULL), _variable(-1), _constant(-1),_lhsNickName(lhs),_rhsNickname("")
+:_fucnt(NULL),_lhs(NULL), _rhs(NULL),_conditionalOperation(condition), _terminalLHS(NULL),_terminalRHS(NULL), _variable(-1), _constant(constant),_lhsNickName(lhs),_rhsNickname("")
 {
 	if(condition == NOT){
 		std::cerr<<"Error: Constructor not valid for NOT operator.\n";
@@ -194,6 +194,7 @@ std::ostream& operator<<(std::ostream& os, const  BioExpression& obj)
 	default:
 		break;
 	}
+
 	os << " ";
 	if (obj._rhs != NULL)
 		os<<obj._rhs;
