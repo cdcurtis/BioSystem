@@ -50,6 +50,19 @@ struct Container
 	{
 
 	}*/
+
+	std::string toString(std::string buffer)
+	{
+		std:: stringstream ss;
+		ss << uniqueID;
+		std::string id;
+		ss>> id;
+
+		std::string ret = buffer + "\"VARIABLE\" : {\n";
+		ret += buffer + "\t" + "\"NAME\" : " + id + "\n";
+		ret += buffer + "}\n";
+		return ret;
+	}
 };
 
 }

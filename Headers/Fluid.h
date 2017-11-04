@@ -10,7 +10,7 @@
 
 #include <iostream>
 #include <vector>
-#include "Volume.h"
+#include "Property/Volume.h"
 
 namespace BioCoder
 {
@@ -43,6 +43,20 @@ struct Fluid
 
 	~Fluid()
 	{
+	}
+
+	std::string toString(){
+		return original_name;
+
+	}
+
+	std::string toString(std::string buffer, Volume v)
+	{
+		std::string ret = buffer + "\"VARIABLE\" : {\n";
+		ret += buffer + "\t" + "\"NAME\" : " + original_name + ",\n";
+		ret += v.toString(buffer+"\t");
+		ret += buffer + "}\n";
+		return ret;
 	}
 };
 

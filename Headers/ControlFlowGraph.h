@@ -9,7 +9,7 @@
 #define HEADERS_CONTROLFLOWGRAPH_H_
 
 #include <vector>
-#include"BasicBlock.h"
+#include"BasicBlock/BasicBlock.h"
 
 namespace BioCoder {
 
@@ -29,9 +29,11 @@ class ControlFlowGraph{
 	 * end if || ENDWHILE
 	 * 	pops vector.
 	 */
+
 	std:: vector <std::vector<BasicBlock*> > _conditionalBookkeeping;
+
 	BasicBlock* _currentBlock;
-//	BasicBlock* _lastKnownBLock;
+
 
 public:
 	ControlFlowGraph(){}

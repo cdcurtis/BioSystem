@@ -10,12 +10,16 @@
 
 #include <vector>
 #include <map>
-#include "BioOperation.h"
-#include "Conditional.h"
+#include "../BioOperation.h"
+#include "../Conditional.h"
 
 
 namespace BioCoder {
 class BasicBlock{
+	std::map<std::string, int> symbol_LUT;
+
+
+
 	std::map<int,std::vector<BioOperation* > > _chemicalInteractionGraph;
 	std::vector<std::pair<Conditional*, BasicBlock*> > _destinations;
 public:

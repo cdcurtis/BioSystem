@@ -12,11 +12,38 @@
 #include <cstdlib>
 #include <cstring>
 #include <stdio.h>
+#include <sstream>
+
 
 #include "../Headers/BioSystem.h"
 
 namespace BioCoder
 {
+void BioSystem :: AddOperationToList(ControlFlowOperation* op, bool isElseIF,bool isElse)
+{
+	if(this->conditionalStack.size() == 0 || (!isElseIF && !isElse)){ //new or nested if or while
+		this->_operationList->push_back(op);
+		this->conditionalStack.push_back(op);
+	}
+	else if(isElseIF){ //new elseif branch
+		Branch* b = reinterpret_cast<Branch*>(this->conditionalStack.at(this->conditionalStack.size()-1));
+		b->AddElseIfBranch(op);
+	}
+	else if(isElse){// new else branch
+		Branch* b = reinterpret_cast<Branch*>(this->conditionalStack.at(this->conditionalStack.size()-1));
+		b->SetElse();
+	}
+
+}
+void BioSystem :: AddOperationToList(Operation* op)
+{
+	if(this->conditionalStack.size() == 0)
+		this->_operationList->push_back(op);
+	else
+		this->conditionalStack.at(this->conditionalStack.size()-1)->AddOpertion(op);
+
+}
+
 
 void BioSystem :: ClearAllContainerOpList(BioOperation* operation)
 {
@@ -288,6 +315,9 @@ void BioSystem :: check_container(Container* container1)
 
 void BioSystem::TransferMethodHelper(Container * source, Container * destination, std::string transferWording)
 {
+	Operation* mix = new Mix(source,destination);
+	AddOperationToList(mix);
+
 	this->TransferOperation(source, destination,true);
 
 	if(source->contents ==NULL)
@@ -373,6 +403,10 @@ void BioSystem::TransferMethodHelper(Container * source, Container * destination
 
 void BioSystem::MixHelper(Container* container, MIX_TYPE mixtype, EXPERIMENT_EVENT event, Time time, int numInverting)
 {
+	Operation* mixOperation = new Mix(container,mixtype,time);
+	AddOperationToList(mixOperation);
+
+
 	std::string type;
 	switch(mixtype)
 	{
@@ -912,6 +946,9 @@ void BioSystem :: measure_fluid(Fluid* fluid1, Container* container1) // measure
 void BioSystem :: measure_fluid(Fluid *fluid1, Volume volume1, Container* container1)
 {
 
+	Operation * dispenseOperation = new Dispense(fluid1, container1, volume1);
+	AddOperationToList(dispenseOperation);
+
 	BioOperation * disp = new BioOperation(_opNum++,DISPENSE,volume1,fluid1);
 
 	this->SetOpsParent(disp,container1);
@@ -1122,6 +1159,9 @@ void BioSystem :: measure_fluid(Container* source, Volume volume1, Container* de
 
 void BioSystem:: measure_fluid(Container * source, int NumSplit, int piecesToDest, Container * Dest, bool ensureMeasurement)
 {
+	Operation* splitOperation = new Split(source,NumSplit,piecesToDest,Dest);
+	AddOperationToList(splitOperation);
+
 	//TODO:: Digital Microfluidics Split.
 	std::cerr<<"Current Implementation only can handle splits into 2 droplets. 1 droplet stays in source, 1 to destination.\n";
 
@@ -1141,6 +1181,9 @@ void BioSystem:: measure_fluid(Container * source, int NumSplit, int piecesToDes
 void BioSystem :: set_temp(Container* container, double temp, TEMPERATURE_UNIT tempUnit)
 {
 	Temperature temperature(tempUnit, temp);
+	Operation * heatOperation = new Heat(container, temperature);
+	AddOperationToList(heatOperation);
+
 	BioOperation * heat = new BioOperation(this->_opNum++,HEAT, temperature);
 	this->SetOpsParent(heat,container);
 	this->BioGraphMaintance(heat);
@@ -1156,10 +1199,14 @@ void BioSystem :: set_temp(Container* container, double temp, TEMPERATURE_UNIT t
 
 void BioSystem::transfer(Container * source, Container * destination)
 {
+
 	this->TransferMethodHelper(source, destination, "Transfer");
 }
 void BioSystem::discard(Container* container, std::string outputSink)
 {
+	Operation* output = new Output(container,true);
+	AddOperationToList(output);
+
 	BioOperation * discard = new BioOperation(this->_opNum++, WASTE, outputSink);
 	this->SetOpsParent(discard,container);
 	this->BioGraphMaintance(discard);
@@ -1234,6 +1281,9 @@ void BioSystem::pipet (Container* container1)
 
 void BioSystem::wait (Container* container, Time time1)
 {
+	Operation* StoreOperation = new Store(container,time1);
+	AddOperationToList(StoreOperation);
+
 
 	BioOperation * store = new BioOperation(this->_opNum++, STORE, time1);
 	this->SetOpsParent(store,container);
@@ -1253,6 +1303,7 @@ void BioSystem::combine_and_mix (MIX_TYPE mix, std::vector<Container*> container
 
 void BioSystem::combine_and_mix (MIX_TYPE mix, Time time1, std::vector<Container*> containerList)
 {
+
 	if (containerList.size()==0) {
 		std::cerr<<"Error: tying to combine empty container List.\n";
 		return;
@@ -1268,6 +1319,9 @@ void BioSystem::combine_and_mix (MIX_TYPE mix, Time time1, std::vector<Container
 
 void BioSystem:: store_for(Container* container, float temp, Time time1)
 {
+	Operation* StoreOperation = new Store(container,time1, Temperature(CELSIUS,temp));
+	AddOperationToList(StoreOperation);
+
 	BioOperation* operation;
 	if(temp == ON_ICE)
 	{
@@ -1314,6 +1368,8 @@ void BioSystem:: store_for(Container* container, float temp, Time time1)
 
 void BioSystem:: store_for(Container* container, float temp, Time time1, STORAGE_FUNCTION function)
 {
+	Operation* StoreOperation = new Store(container,time1, Temperature(CELSIUS,temp));
+	AddOperationToList(StoreOperation);
 
 	if(function == 1)
 	{
@@ -1344,6 +1400,10 @@ void BioSystem:: store_until(Container* container, float temp, EXPERIMENT_EVENT 
 }
 void BioSystem:: store_until(Container* container, float temp, EXPERIMENT_EVENT event, Time time1)
 {
+	Operation* StoreOperation = new Store(container,time1, Temperature(CELSIUS,temp),event);
+
+	AddOperationToList(StoreOperation);
+
 	switch(event)
 	{
 	case ETHANOL_EVAP:if (temp == ROOM_TEMPERATURE)
@@ -1373,6 +1433,10 @@ void BioSystem:: incubate(Container* container1, float temp, Time time1)
 }
 void BioSystem:: incubate(Container* container1, float temp, Time time1, int rpm)
 {
+	Operation* heatOperation = new Heat(container1,Temperature(CELSIUS,temp),time1);
+
+	AddOperationToList(heatOperation);
+
 	if (rpm != -1)
 		std::cerr << "RPM not suitable for micrfluidic device. The information will not be passed along.\n";
 
@@ -1416,6 +1480,9 @@ void BioSystem:: incubate(Container* container1, float temp, Time time1, int rpm
 }
 void BioSystem:: incubate_and_mix(Container* container1, float temp, Time time1, Time time_mix, MIX_TYPE type)
 {
+	Operation* heatOperation = new Heat(container1,Temperature(CELSIUS,temp),time1);
+	AddOperationToList(heatOperation);
+
 	this->incubate(container1,temp,time1);
 	this->MixHelper(container1,type, EVENT_NOT_SPECIFIED, time_mix);
 }
@@ -1423,6 +1490,10 @@ void BioSystem:: incubate_and_mix(Container* container1, float temp, Time time1,
 
 void BioSystem:: drain(Container* container1, std::string outputSink)
 {
+	Operation* outputOperation = new Output(container1,true);
+	AddOperationToList(outputOperation);
+
+
 	BioOperation* waste = new BioOperation(this->_opNum++,WASTE,outputSink);
 
 	this->SetOpsParent(waste,container1);
@@ -1439,8 +1510,24 @@ BioOperation * BioSystem:: ce_detect (Container* container1, float length, float
 {
 	return this->ce_detect(container1,length, volt_per_cm, fluid1, Time(), nickname);
 }
+
 BioOperation * BioSystem:: ce_detect (Container* container1, float length, float volt_per_cm, Fluid* fluid1, Time time1, std::string nickname)
 {
+
+	std::vector<Property> properties;
+	std:: stringstream ss;
+	ss<<length;
+	properties.push_back(BioCoder::Property("Length", ss.str(),"Float"));
+	ss.clear();
+	ss<<volt_per_cm;
+	properties.push_back(BioCoder::Property("Volts per Centimeter", ss.str(),"Volts"));
+	properties.push_back(BioCoder::Property("Fluid", fluid1->toString(),"Fluid"));
+	properties.push_back(time1);
+
+	Operation* detectOperation = new Detect(container1,nickname,properties);
+	AddOperationToList(detectOperation);
+
+
 	//TODO Pass-on relevent info to SIMs.
 	std::cerr<<"Current implementation doesnt pass extra info besides detect to MF_SIMULATORs.\n";
 
@@ -1489,6 +1576,12 @@ BioOperation * BioSystem:: ce_detect (Container* container1, float length, float
 
 BioOperation * BioSystem:: measure_fluorescence (Container* container1, Time time1, std::string nickname)
 {
+
+	std::vector<Property> properties;
+	properties.push_back(time1);
+	Operation* detectOperation = new Detect(container1,nickname,properties);
+	AddOperationToList(detectOperation);
+
 	fprintf(fp, "Measure the fluorescence of %s.<br>", container1->contents->new_name.c_str());
 
 
@@ -1508,6 +1601,13 @@ BioOperation * BioSystem:: electrophoresis(Container* container1, std::string ni
 
 BioOperation * BioSystem:: electrophoresis(Container* container1, float agar_conc, std::string nickname)
 {
+	std::vector<Property> properties;
+	std::stringstream ss;
+	ss<<agar_conc;
+	properties.push_back(BioCoder::Property("AGAR Concentration", ss.str(),"Float"));
+	Operation* detectOperation = new Detect(container1,nickname,properties);
+	AddOperationToList(detectOperation);
+
 	//TODO Pass-on relevent info to SIMs.
 	if (agar_conc != -1)
 		std::cerr<<"Current implementation doesnt pass extra info besides detect to MF_SIMULATORs.\n";
@@ -1534,6 +1634,11 @@ BioOperation * BioSystem:: electrophoresis(Container* container1, float agar_con
 }
 BioOperation * BioSystem:: sequencing(Container* container1, std::string nickname)
 {
+
+	std::vector<Property> properties;
+	Operation* detectOperation = new Detect(container1,nickname,properties);
+	AddOperationToList(detectOperation);
+
 	fprintf(fp,"Dilute %s to <font color=#357EC7>100ng/ �l</font> and send <font color=#357EC7>1 �g (10 �L)</font> for sequencing.<br>", container1->contents->new_name.c_str());
 
 	BioOperation *detect = new BioOperation(this->_opNum++, DETECT, SEQUENCING, Time(), nickname );
@@ -1547,6 +1652,11 @@ BioOperation * BioSystem:: sequencing(Container* container1, std::string nicknam
 
 BioOperation * BioSystem:: weigh(Container* container1, std::string nickname)
 {
+
+	std::vector<Property> properties;
+	Operation* detectOperation = new Detect(container1,nickname,properties);
+	AddOperationToList(detectOperation);
+
 	fprintf(fp, "Weigh the amount of %s present.<br>", container1->contents->new_name.c_str());
 
 	BioOperation *detect = new BioOperation(this->_opNum++, DETECT, WEIGH, Time(), nickname );
@@ -1560,6 +1670,11 @@ BioOperation * BioSystem:: weigh(Container* container1, std::string nickname)
 
 BioOperation * BioSystem:: facs(Container* container1, std:: string nickname)
 {
+
+	std::vector<Property> properties;
+	Operation* detectOperation = new Detect(container1,nickname,properties);
+	AddOperationToList(detectOperation);
+
 	fprintf(fp, "FACS: sort %s based on fluorescence.", container1->contents->new_name.c_str());
 
 	BioOperation *detect = new BioOperation(this->_opNum++, DETECT, FACS, Time(), nickname );
@@ -1573,6 +1688,27 @@ BioOperation * BioSystem:: facs(Container* container1, std:: string nickname)
 
 BioOperation * BioSystem:: cell_culture(Container* cells, Fluid* medium, int centri_speed, float temp, float time, float percent_CO2, Fluid* for_wash_valves, Fluid* for_wash_chambers, Fluid* for_trypsinization, float for_feeding, std::string nickname)
 {
+	std::vector<Property> properties;
+	std::stringstream ss;
+	properties.push_back(BioCoder::Property("Medium", medium->toString(),"Fluid"));
+	ss<<centri_speed;
+	properties.push_back(BioCoder::Property("Centrifuge Speed", ss.str(),"RPM"));
+	properties.push_back(Temperature(CELSIUS, temp));
+	properties.push_back(Time(SECS, time));
+	ss.clear();
+	ss<<percent_CO2;
+	properties.push_back(BioCoder::Property("C02 Percentage",ss.str(), "Percentage"));
+	properties.push_back(BioCoder::Property("Wash Valves", for_wash_valves->toString(),"Fluid"));
+	properties.push_back(BioCoder::Property("Wash Chambers", for_wash_chambers->toString(),"Fluid"));
+	properties.push_back(BioCoder::Property("Trypsinization", for_trypsinization->toString(),"Fluid"));
+	ss.clear();
+	ss<<for_feeding;
+	properties.push_back(BioCoder::Property("Feeding",ss.str(), "Float"));
+
+	Operation* detectOperation = new Detect(cells,nickname,properties);
+	AddOperationToList(detectOperation);
+
+
 	//TODO Pass-on relevent info to SIMs.
 	std::cerr<<"Current implementation doesnt pass extra info besides detect to MF_SIMULATORs.\n";
 
@@ -1589,6 +1725,14 @@ BioOperation * BioSystem:: cell_culture(Container* cells, Fluid* medium, int cen
 
 BioOperation * BioSystem:: transfection(Container* container1, Fluid* medium, Fluid* dna, std::string nickname)
 {
+
+	std::vector<Property> properties;
+	properties.push_back(BioCoder::Property("Medium", medium->toString(),"Fluid"));
+	properties.push_back(BioCoder::Property("DNA", dna->toString(),"Fluid"));
+	Operation* detectOperation = new Detect(container1,nickname,properties);
+	AddOperationToList(detectOperation);
+
+
 	//TODO Pass-on relevent info to SIMs.
 	std::cerr<<"Current implementation doesnt pass extra info besides detect to MF_SIMULATORs.\n";
 
@@ -1616,6 +1760,20 @@ BioOperation * BioSystem:: electroporate (Container* container1, float voltage, 
 		electro_no++;
 	}
 
+	std::vector<Property> properties;
+	std::stringstream ss;
+	ss<<voltage;
+
+
+	properties.push_back(BioCoder::Property("Voltage", ss.str(),"Volts"));
+
+	ss.clear();
+	ss<<no_pulses;
+	properties.push_back(BioCoder::Property("Num Pulse", ss.str(),"Integer"));
+
+	Operation* detectOperation = new Detect(container1,nickname,properties);
+	AddOperationToList(detectOperation);
+
 	BioOperation *detect = new BioOperation(this->_opNum++, DETECT, ELECTROPORATE, Time(), nickname );
 	this->SetOpsParent(detect,container1);
 	this->BioGraphMaintance(detect);
@@ -1627,6 +1785,9 @@ BioOperation * BioSystem:: electroporate (Container* container1, float voltage, 
 
 void BioSystem:: IF(BioExpression* expression)
 {
+	ControlFlowOperation * op = new Branch(expression);
+	this->AddOperationToList(op,false,false);
+
 	BioOperation* if_statement = new BioOperation(this->_opNum++, IF_OP, expression);
 
 	this->SetOpsParent(if_statement);
@@ -1665,6 +1826,9 @@ void BioSystem:: IF(std::string lhs , ConditionalOps condition, double constant)
 
 void BioSystem:: ELSE_IF(BioExpression* expression)
 {
+	ControlFlowOperation * op = new ControlFlowOperation(expression);
+	this->AddOperationToList(op,true,false);
+
 	BioOperation* else_if_statement = new BioOperation(this->_opNum++, ELSE_IF_OP, expression);
 
 	this->SetOpsParent(else_if_statement);
@@ -1700,6 +1864,8 @@ void BioSystem:: ELSE_IF(std::string lhs , ConditionalOps condition, double cons
 
 void BioSystem:: ELSE()
 {
+	this->AddOperationToList(NULL,false,true);
+
 	BioOperation* else_operation = new BioOperation(this->_opNum++, ELSE_OP);
 
 	this->SetOpsParent(else_operation);
@@ -1710,6 +1876,8 @@ void BioSystem:: ELSE()
 
 void  BioSystem:: END_IF()
 {
+	this->conditionalStack.pop_back();
+
 	BioOperation* end_if = new BioOperation(this->_opNum++, END_IF_OP);
 
 	this->SetOpsParent(end_if);
@@ -1721,6 +1889,9 @@ void  BioSystem:: END_IF()
 
 void BioSystem :: LOOP (int times)
 {
+	ControlFlowOperation * op = new ControlFlowOperation(new BioExpression(times));
+	this->AddOperationToList(op);
+
 	BioOperation* loop = new BioOperation(this->_opNum++, LOOP_OP, NULL,times);
 	this->SetOpsParent(loop );
 	this->BioGraphMaintance(loop );
@@ -1730,6 +1901,7 @@ void BioSystem :: LOOP (int times)
 }
 void BioSystem :: END_LOOP()
 {
+	this->conditionalStack.pop_back();
 	BioOperation* end_Loop = new BioOperation(this->_opNum++, END_LOOP_OP);
 
 	this->SetOpsParent(end_Loop);
@@ -1740,6 +1912,10 @@ void BioSystem :: END_LOOP()
 
 void  BioSystem :: WHILE(BioExpression* expression)
 {
+	ControlFlowOperation * op = new ControlFlowOperation(expression);
+	this->AddOperationToList(op,false,false);
+
+
 	BioOperation* while_statement = new BioOperation(this->_opNum++, WHILE_OP, expression);
 
 	this->SetOpsParent(while_statement );
@@ -1790,6 +1966,15 @@ void BioSystem :: END_WHILE()
 	this->AddOPToAllContainers(end_while);
 }
 
+
+void BioSystem::PrintCompilationFile(std::string fileName)
+{
+	for (Operation* o : *(this->_operationList))
+	{
+		std::cout << o->toString("") + ","  <<std::endl;
+	}
+
+}
 
 
 

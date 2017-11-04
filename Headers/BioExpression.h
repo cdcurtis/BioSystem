@@ -54,6 +54,14 @@ struct BioExpression
 	BioExpression(BioOperation* lhs, ConditionalOps condition, double constant);
 
 	BioExpression(double variable,ConditionalOps condition, double constant, incrementor funct);
+	BioExpression(int loop){
+		this->_constant = loop;
+	}
+	std::string toString(std::string buffer){
+		std::string ret;
+		ret+= "NO CODE GEN FOR BIO EXPRESSION\n";
+		return ret;
+	}
 
 };
 

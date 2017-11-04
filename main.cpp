@@ -6,9 +6,9 @@
  */
 
 #include <iostream>
-#include "Headers/Temperature.h"
-#include "Headers/Time.h"
-#include "Headers/Volume.h"
+#include "Headers/Property/Temperature.h"
+#include "Headers/Property/Time.h"
+#include "Headers/Property/Volume.h"
 
 #include "Headers/Fluid.h"
 #include "Headers/Container.h"
@@ -21,15 +21,15 @@ using namespace BioCoder;
 
 int main ()
 {
-	//BioSystemTest::SimpleProtocol();
+	BioSystemTest::SimpleProtocol();
 	//BioSystemTest::NestedIFTest();
 	//BioSystemTest::SimpleWhileSensorConditional();
 	//BioSystemTest::NestedIFInWhile();
 	//BioSystemTest::SimplePCRLoop();
 	//BioSystemTest::ProbablisticPCR();
-	BioSystemTest::PCRDropletReplacement();
+	//BioSystemTest::PCRDropletReplacement();
 
-	std::string foo;
+
 	//std::cin>>foo;
 	std::cout<<"Terminated \n";
 	return 0;

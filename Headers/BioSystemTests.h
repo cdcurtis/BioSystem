@@ -27,6 +27,14 @@ public:
 	static void GlucoseDetection();
 	static void ImageProbSynthesis();
 	static void neurotransmitterSensing();
+
+	static void DrugPanelHierarchy();
+	static void BroadSpectrumOptiate();
+	static void HeroinEliza();
+	static void OxyEliza();
+	static void CiproEliza();
+	static void FentanylEliza();
+
 };
 
 

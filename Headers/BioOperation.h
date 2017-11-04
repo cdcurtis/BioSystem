@@ -9,16 +9,16 @@
 #define BIOOPERATION_H_
 #include <iostream>
 #include <cstdio>
-#include "Time.h"
-#include "Temperature.h"
+#include "Property/Time.h"
+#include "Property/Temperature.h"
 #include "Fluid.h"
 #include "BioExpression.h"
+#include "Operations/Operation.h"
 
 namespace BioCoder
 {
 /*! Specifies certain conditions that might have to be satisfied for the completion of a step. For use in store_until(), vortex(), etc. */
 enum EXPERIMENT_EVENT{ETHANOL_EVAP/*!< "until all the ethanol has evaporated and no fluid is visible in the tube".*/, OD/*!< "until the O.D.600 reaches 0.6". */, THAW/*!< "until the sample has thawed". */, COOLED/*!< "until cooled". */, COLOUR_DEVELOPS/*!< "until the colour develops". */, PPT_STOPS_STICKING/*!< "until the precipitate stops sticking to the walls of the tube". */, PELLET_DISLODGES/*!< "until the pellet dislodges". */, THAW_ICE/*!< "keep on ice until the sample has thawed" */, EVENT_NOT_SPECIFIED};
-enum OPERATION_TYPE {DISPENSE, DETECT, HEAT, COOL, STORE, MIX, SPLIT, WASTE, OUTPUT, IF_OP, ELSE_IF_OP, ELSE_OP, WHILE_OP, END_IF_OP, END_WHILE_OP,LOOP_OP, END_LOOP_OP, OPERATION_NOT_SPECIFED};
 //enum ARCHITECTURE_TYPE {DIGITAL_MF, CONTINOUS_FLOW_MF, ARCHITECTURE_NOT_SPECIFIED};
 enum DETECT_TYPE {CE_DETECT, MEASURE_FLUORESCENCE, ELECTROPHORESIS, SEQUENCING, WEIGH, FACS, CELL_CULTURE, TRANSFECTION, ELECTROPORATE, DETECT_NOT_SPECIFIED};
 enum MIX_TYPE{TAP, STIR, INVERT, VORTEX, RESUSPEND, DISSOLVE, PIPET, MIX_NOT_SPECIFIED};

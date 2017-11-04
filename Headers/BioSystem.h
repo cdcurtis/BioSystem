@@ -12,9 +12,25 @@
 
 #include "Fluid.h"
 #include "Container.h"
-#include "Time.h"
-#include "Temperature.h"
-#include "Volume.h"
+#include "Property/Time.h"
+#include "Property/Temperature.h"
+#include "Property/Volume.h"
+
+#include "Operations/Branching.h"
+#include "Operations/ControlFlowOperation.h"
+#include "Operations/Detect.h"
+#include "Operations/Dispense.h"
+
+#include "Operations/Heat.h"
+#include "Operations/Mix.h"
+#include "Operations/Operation.h"
+#include "Operations/Output.h"
+#include "Operations/Store.h"
+#include "Operations/Split.h"
+
+
+
+
 
 #include "BioOperation.h"
 #include "Conditional.h"
@@ -73,16 +89,23 @@ class BioSystem
 	std::vector<Container *> usage_list_containers;
 
 	// roots tree and user Defined Level Tree will contain the same operations
+	std::vector<Operation*> *_operationList;
+	std::vector<ControlFlowOperation*> conditionalStack;
 	std::vector<BioOperation*> _roots; //Dilution Tree
 	std::vector<std::vector <BioOperation*> > _userDefinedLevelTree; //steppedProtocol
 	//std::vector<Container*> _containers;
 	//std::vector<Fluid*> _fluids;
 
-
+	//BackEnd 2.0
+	std::string JSONOutput;
+	//std::vector<>
 	//Helper functions
 
 	void ClearAllContainerOpList(BioOperation*);
 	void ClearContainerOpList(Container *, BioOperation* op = NULL);
+
+	void AddOperationToList(ControlFlowOperation* op, bool isElseIF = false, bool isElse =false);
+	void AddOperationToList(Operation* op);
 
 	void AddOpToCFG(BioOperation*, Container * );
 	void AddOpToContainer(BioOperation* , Container * );
@@ -90,6 +113,9 @@ class BioSystem
 	void SetOpsParent(BioOperation * );
 	void SetOpsParent(BioOperation *, Container * );
 	void SetConditionalOpsParent(BioOperation *, Container * );
+
+
+
 
 	void SetEndIfparents(BioOperation *, Container *);
 	void SetEndIfparents(BioOperation *);
@@ -142,6 +168,8 @@ public:
 		list_fluid_no = list_container_no = _containerID = 0;
 
 		start_protocol(name);
+
+		_operationList = new std::vector<Operation*>();
 	}
 
 
@@ -922,6 +950,7 @@ public:
 	void LOOP (int times);
 	void END_LOOP();
 
+	void PrintCompilationFile(std::string fileName = "");
 };
 
 }

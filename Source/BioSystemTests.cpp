@@ -32,7 +32,7 @@ void BioSystemTest::SimpleProtocol()
 
 	bioCoder.end_protocol();
 
-
+	bioCoder.PrintCompilationFile();
 	//	bioCoder.PrintLeveledProtocol();
 	bioCoder.PrintTreeVisualization("SimpleProtocol");
 
@@ -295,35 +295,35 @@ void BioSystemTest:: PCRDropletReplacement()
 	bioCoder.LOOP(TotalThermo);
 
 	std::cout<<"Debug statement2"<<std::endl;
-		bioCoder.next_step();
-		bioCoder.store_for(tube,95,Time(SECS,20));
+	bioCoder.next_step();
+	bioCoder.store_for(tube,95,Time(SECS,20));
 
-		bioCoder.next_step();
-		bioCoder.weigh(tube,"weightSensor");
+	bioCoder.next_step();
+	bioCoder.weigh(tube,"weightSensor");
 
-		bioCoder.next_step();
-		bioCoder.IF("WieghtSensor",LESS_THAN, 3.57);
-		bioCoder.next_step();
-		bioCoder.measure_fluid(PCRMix, tube);
+	bioCoder.next_step();
+	bioCoder.IF("WieghtSensor",LESS_THAN, 3.57);
+	bioCoder.next_step();
+	bioCoder.measure_fluid(PCRMix, tube);
 
-		bioCoder.next_step();
-		bioCoder.store_for(tube, 95,Time(SECS,45));
+	bioCoder.next_step();
+	bioCoder.store_for(tube, 95,Time(SECS,45));
 
-//		bioCoder.next_step();
-//		bioCoder.measure_fluid(tube2,tube);
+	//		bioCoder.next_step();
+	//		bioCoder.measure_fluid(tube2,tube);
 
-		bioCoder.next_step();
-		bioCoder.vortex(tube, Time(SECS,1));
-		bioCoder.END_IF();
+	bioCoder.next_step();
+	bioCoder.vortex(tube, Time(SECS,1));
+	bioCoder.END_IF();
 
-		bioCoder.next_step();
-		bioCoder.store_for(tube,50,Time(SECS,30));
+	bioCoder.next_step();
+	bioCoder.store_for(tube,50,Time(SECS,30));
 
-		bioCoder.next_step();
-		bioCoder.store_for(tube,68,Time(SECS,45));
-		std::cout<<"Debug statement3"<<std::endl;
-		bioCoder.END_LOOP();
-		std::cout<<"Debug statement4"<<std::endl;
+	bioCoder.next_step();
+	bioCoder.store_for(tube,68,Time(SECS,45));
+	std::cout<<"Debug statement3"<<std::endl;
+	bioCoder.END_LOOP();
+	std::cout<<"Debug statement4"<<std::endl;
 
 
 	bioCoder.next_step();
@@ -353,23 +353,23 @@ void BioSystemTest::PCR(){
 	bioCoder.measure_fluid(PCRMix,tube);
 
 	bioCoder.next_step();
-	bioCoder.incubate(tube,95,Time(5,SECS));
+	bioCoder.incubate(tube,95,Time(SECS,5));
 
 	bioCoder.next_step();
 	bioCoder.LOOP(20);
 
 	bioCoder.next_step();
-	bioCoder.incubate(tube,53,Time(15,SECS));
+	bioCoder.incubate(tube,53,Time(SECS,15));
 
 	bioCoder.next_step();
-	bioCoder.incubate(tube,72,Time(10,SECS));
+	bioCoder.incubate(tube,72,Time(SECS,10));
 	bioCoder.END_LOOP();
 
 	bioCoder.next_step();
 	bioCoder.ce_detect(tube,5,236,SeperationMedium);
 
 	bioCoder.next_step();
-	bioCoder.measure_fluorescence(tube,Time(3,MINS));
+	bioCoder.measure_fluorescence(tube,Time(MINS,3));
 
 	bioCoder.next_step();
 	bioCoder.end_protocol();
@@ -418,11 +418,11 @@ void BioSystemTest:: GlucoseDetection(){
 	bioCoder.measure_fluid(Sample,Volume(MICRO_LITER,80),tube5);
 
 	bioCoder.next_step();
-	bioCoder.measure_fluorescence(tube,Time(5,SECS));
-	bioCoder.measure_fluorescence(tube2,Time(5,SECS));
-	bioCoder.measure_fluorescence(tube3,Time(5,SECS));
-	bioCoder.measure_fluorescence(tube4,Time(5,SECS));
-	bioCoder.measure_fluorescence(tube5,Time(5,SECS));
+	bioCoder.measure_fluorescence(tube,Time(SECS,5));
+	bioCoder.measure_fluorescence(tube2,Time(SECS,5));
+	bioCoder.measure_fluorescence(tube3,Time(SECS,5));
+	bioCoder.measure_fluorescence(tube4,Time(SECS,5));
+	bioCoder.measure_fluorescence(tube5,Time(SECS,5));
 
 	bioCoder.next_step();
 	bioCoder.end_protocol();
@@ -443,37 +443,37 @@ void BioSystemTest::ImageProbSynthesis(){
 	bioCoder.measure_fluid(Fluoride,tube);
 
 	bioCoder.next_step();
-	bioCoder.vortex(tube,Time(30,SECS));
+	bioCoder.vortex(tube,Time(SECS,30));
 
 	bioCoder.next_step();
-	bioCoder.incubate(tube,100,Time(30,SECS));
+	bioCoder.incubate(tube,100,Time(SECS,30));
 
 	bioCoder.next_step();
-	bioCoder.incubate(tube,120,Time(30,SECS));
+	bioCoder.incubate(tube,120,Time(SECS,30));
 
 	bioCoder.next_step();
-	bioCoder.incubate(tube,135, Time(3,MINS));
+	bioCoder.incubate(tube,135, Time(MINS,3));
 
 	bioCoder.next_step();
 	bioCoder.measure_fluid(MeCNSolution,tube);
 
 	bioCoder.next_step();
-	bioCoder.vortex(tube,Time(30,SECS));
+	bioCoder.vortex(tube,Time(SECS,30));
 
 	bioCoder.next_step();
-	bioCoder.incubate(tube,100,Time(30,SECS));
+	bioCoder.incubate(tube,100,Time(SECS,30));
 
 	bioCoder.next_step();
-	bioCoder.incubate(tube,120,Time(50,SECS));
+	bioCoder.incubate(tube,120,Time(SECS,50));
 
 	bioCoder.next_step();
 	bioCoder.measure_fluid(HCL,tube);
 
 	bioCoder.next_step();
-	bioCoder.vortex(tube,Time(60,SECS));
+	bioCoder.vortex(tube,Time(SECS,60));
 
 	bioCoder.next_step();
-	bioCoder.incubate(tube,60,Time(60,SECS));
+	bioCoder.incubate(tube,60,Time(SECS,60));
 
 	bioCoder.next_step();
 	bioCoder.end_protocol();
@@ -481,7 +481,7 @@ void BioSystemTest::ImageProbSynthesis(){
 /*Mixture = Mix <no value>µL of Sample with <no value>µL of Reagent for 50s
 Perform Capillary Electrophoresis ( 9 cm at 223 V/cm) on Mixture Seperate with <no value>µL of electrophoresis buffer
 Measure the fluorescence of Mixture for 10s
-*/
+ */
 void BioSystemTest::neurotransmitterSensing(){
 	BioSystem bioCoder;
 
@@ -496,14 +496,353 @@ void BioSystemTest::neurotransmitterSensing(){
 	bioCoder.measure_fluid(Reagent,tube);
 
 	bioCoder.next_step();
-	bioCoder.vortex(tube,Time(50,SECS));
+	bioCoder.vortex(tube,Time(SECS,50));
 
 	bioCoder.next_step();
 	bioCoder.ce_detect(tube,9,223,SeperationMedium);
 
 	bioCoder.next_step();
-	bioCoder.measure_fluorescence(tube,Time(10,SECS));
+	bioCoder.measure_fluorescence(tube,Time(SECS,10));
 
 	bioCoder.next_step();
 	bioCoder.end_protocol();
 }
+
+void BioSystemTest::DrugPanelHierarchy()
+{
+	BioSystem bioCoder;
+
+	Fluid *urineSample = bioCoder.new_fluid("Urine", Volume(MILLI_LITER,250));
+	Fluid *Wash = bioCoder.new_fluid("Distilled Water", Volume(LITER,1));
+
+	Fluid *antiMorphine = bioCoder.new_fluid("Anti-Morphine", Volume(MICRO_LITER,10));
+	Fluid *antiOXY = bioCoder.new_fluid("Anti-Oxycodone", Volume(MICRO_LITER,10));
+	Fluid *antiFentanyl = bioCoder.new_fluid("Anti-Fentanyl", Volume(MICRO_LITER,10));
+	Fluid *antiCiprofloxcin = bioCoder.new_fluid("Anti-Ciprofloxcin", Volume(MICRO_LITER,10));
+	Fluid *antiHeroin = bioCoder.new_fluid("Anti-Heroin", Volume(MICRO_LITER,10));
+
+
+	Fluid *TMBSubstrate = bioCoder.new_fluid("TMBSubstrate",Volume(MILLI_LITER,500));
+	Fluid *StopReagent = bioCoder.new_fluid("StopReagent",Volume(MILLI_LITER,500));
+
+
+	Container* tube1 = bioCoder.new_container(STERILE_MICROFUGE_TUBE2ML);
+	Container* tube2 = bioCoder.new_container(STERILE_MICROFUGE_TUBE2ML);
+	Container* tube3 = bioCoder.new_container(STERILE_MICROFUGE_TUBE2ML);
+	Container* tube4 = bioCoder.new_container(STERILE_MICROFUGE_TUBE2ML);
+	Container* tube5 = bioCoder.new_container(STERILE_MICROFUGE_TUBE2ML);
+
+
+	bioCoder.first_step();
+	bioCoder.measure_fluid(urineSample,Volume(MICRO_LITER,10),tube1);
+	bioCoder.measure_fluid(antiMorphine, tube1);
+
+	bioCoder.measure_fluid(urineSample,Volume(MICRO_LITER,10),tube2);
+	bioCoder.measure_fluid(antiOXY, tube2);
+
+	bioCoder.measure_fluid(urineSample,Volume(MICRO_LITER,10),tube3);
+	bioCoder.measure_fluid(antiFentanyl, tube3);
+
+	bioCoder.measure_fluid(urineSample,Volume(MICRO_LITER,10),tube4);
+	bioCoder.measure_fluid(antiCiprofloxcin, tube4);
+
+	bioCoder.measure_fluid(urineSample,Volume(MICRO_LITER,10),tube5);
+	bioCoder.measure_fluid(antiHeroin, tube5);
+
+	bioCoder.next_step();
+	bioCoder.measure_fluorescence(tube1,Time(SECS,5),"MorphineReading");
+	bioCoder.measure_fluorescence(tube2,Time(SECS,5),"OXYReading");
+	bioCoder.measure_fluorescence(tube3,Time(SECS,5),"FentanylReading");
+	bioCoder.measure_fluorescence(tube4,Time(SECS,5),"CiprofloxcinReading");
+	bioCoder.measure_fluorescence(tube5,Time(SECS,5),"HeroinReading");
+
+	bioCoder.next_step();
+	bioCoder.drain(tube1,"Waste");
+	bioCoder.drain(tube2,"Waste");
+	bioCoder.drain(tube3,"Waste");
+	bioCoder.drain(tube4,"Waste");
+	bioCoder.drain(tube5,"Waste");
+
+
+	BioExpression* e1 = new BioExpression("MorphineReading",GREATER_THAN_or_EQUAL, .75);
+	BioExpression* e2 = new BioExpression("OXYReading",GREATER_THAN_or_EQUAL, .75);
+	BioExpression* e3 = new BioExpression("FentanylReading",GREATER_THAN_or_EQUAL, .75);
+	BioExpression* e4 = new BioExpression("CiprofloxcinReading",GREATER_THAN_or_EQUAL, .75);
+	BioExpression* e5 = new BioExpression("HeroinReading",GREATER_THAN_or_EQUAL, .75);
+	BioExpression* e6 = new BioExpression(e1,OR, e2);
+	BioExpression* e7 = new BioExpression(e3,OR, e4);
+	BioExpression* e8 = new BioExpression(e5,OR, new BioExpression(e6,OR, e7));
+
+	bioCoder.IF(e8);
+	{
+		Fluid *HeroinEnzyme = bioCoder.new_fluid("HeroinEnzyme");
+		Fluid *HeroinConjugate = bioCoder.new_fluid("HeroinEnzyme",Volume(MICRO_LITER,100));
+		Fluid *CiproEnzyme = bioCoder.new_fluid("CiproEnzyme");
+		Fluid *CiproConjugate = bioCoder.new_fluid("CiproEnzyme",Volume(MICRO_LITER,100));
+
+		bioCoder.next_step();
+		bioCoder.measure_fluid(urineSample,Volume(MICRO_LITER,20),tube1);
+		bioCoder.measure_fluid(HeroinEnzyme, tube1);
+		bioCoder.measure_fluid(HeroinConjugate,tube1);
+
+		bioCoder.measure_fluid(urineSample,Volume(MICRO_LITER,20),tube2);
+		bioCoder.measure_fluid(CiproEnzyme, tube2);
+		bioCoder.measure_fluid(CiproConjugate, tube2);
+
+		bioCoder.next_step();
+		bioCoder.tap(tube1,Time(SECS,60));
+		bioCoder.tap(tube2,Time(SECS,60));
+
+		bioCoder.next_step();
+		bioCoder.incubate(tube1,23,Time(MINS,60));
+		bioCoder.incubate(tube2,23,Time(MINS,60));
+
+		bioCoder.next_step();
+		bioCoder.drain(tube1,"Waste");
+		bioCoder.drain(tube2,"Waste");
+
+		//wash Enzyme;
+		bioCoder.next_step();
+		bioCoder.LOOP(6);
+		{
+			bioCoder.next_step();
+			bioCoder.measure_fluid(Wash,Volume(MICRO_LITER,350), tube1);
+			bioCoder.measure_fluid(Wash,Volume(MICRO_LITER,350), tube2);
+
+			bioCoder.next_step();
+			bioCoder.vortex(tube1,Time(SECS,45));
+			bioCoder.vortex(tube2,Time(SECS,45));
+
+			bioCoder.next_step();
+			bioCoder.drain(tube1,"Waste");
+			bioCoder.drain(tube2,"Waste");
+		}
+		bioCoder.END_LOOP();
+
+		bioCoder.next_step();
+		bioCoder.measure_fluid(TMBSubstrate,Volume(MICRO_LITER,100),tube1);
+		bioCoder.measure_fluid(TMBSubstrate,Volume(MICRO_LITER,50),tube2);
+
+		bioCoder.next_step();
+		bioCoder.incubate(tube1,23,Time(MINS,30));
+		bioCoder.incubate(tube2,23,Time(MINS,30));
+
+		bioCoder.next_step();
+		bioCoder.measure_fluid(StopReagent,Volume(MICRO_LITER,100),tube1);
+		bioCoder.measure_fluid(StopReagent,Volume(MICRO_LITER,100),tube2);
+
+		bioCoder.next_step();
+		bioCoder.vortex(tube1,Time(SECS,60));
+		bioCoder.vortex(tube2,Time(SECS,60));
+
+		bioCoder.next_step();
+		bioCoder.measure_fluorescence(tube1,Time(MINS,30),"FinalHeroinReading");
+		bioCoder.measure_fluorescence(tube2,Time(MINS,5),"FinalCiproReading");
+
+		bioCoder.next_step();
+		bioCoder.drain(tube1,"Waste");
+		bioCoder.drain(tube2,"Waste");
+
+
+		bioCoder.next_step();
+		//if both false run oxy
+		e1 = new BioExpression("FinalHeroinReading",LESS_THAN_or_EQUAL, .75);
+		e2 = new BioExpression("FinalCiproReading",LESS_THAN_or_EQUAL, .75);
+		e3 = new BioExpression(e1,AND, e2);
+
+		bioCoder.IF(e3);
+		{
+			//run fent and oxy
+			Fluid *OXYEnzyme = bioCoder.new_fluid("OXYEnzyme");
+			Fluid *OXYConjugate = bioCoder.new_fluid("OXYConjugate",Volume(MICRO_LITER,100));
+
+			bioCoder.next_step();
+			bioCoder.measure_fluid(urineSample,Volume(MICRO_LITER,20),tube1);
+			bioCoder.measure_fluid(OXYEnzyme, tube1);
+			bioCoder.measure_fluid(OXYConjugate,tube1);
+
+			bioCoder.next_step();
+			bioCoder.tap(tube1,Time(SECS,60));
+
+			bioCoder.next_step();
+			bioCoder.incubate(tube1,23,Time(MINS,60));
+
+			bioCoder.next_step();
+			bioCoder.drain(tube1,"Waste");
+
+			//wash Enzyme;
+			bioCoder.next_step();
+			bioCoder.LOOP(6);
+			{
+				bioCoder.next_step();
+				bioCoder.measure_fluid(Wash,Volume(MICRO_LITER,350), tube1);
+
+				bioCoder.next_step();
+				bioCoder.vortex(tube1,Time(SECS,45));
+
+				bioCoder.next_step();
+				bioCoder.drain(tube1,"Waste");
+			}
+			bioCoder.END_LOOP();
+
+			bioCoder.next_step();
+			bioCoder.measure_fluid(TMBSubstrate,Volume(MICRO_LITER,100),tube1);
+
+			bioCoder.next_step();
+			bioCoder.incubate(tube1,23,Time(MINS,30));
+
+			bioCoder.next_step();
+			bioCoder.measure_fluid(StopReagent,Volume(MICRO_LITER,100),tube1);
+
+			bioCoder.next_step();
+			bioCoder.vortex(tube1,Time(SECS,60));
+
+			bioCoder.next_step();
+			bioCoder.measure_fluorescence(tube1,Time(MINS,30),"FinalOXYReading");
+
+			bioCoder.next_step();
+			bioCoder.drain(tube1,"Waste");
+		}
+		bioCoder.END_IF();
+	}
+
+	bioCoder.ELSE();
+	{
+		//run fent and oxy
+		Fluid *FentanylEnzyme = bioCoder.new_fluid("FentanylConjugate");
+		Fluid *FentanylConjugate = bioCoder.new_fluid("HeroinEnzyme",Volume(MICRO_LITER,100));
+		Fluid *OXYEnzyme = bioCoder.new_fluid("OXYEnzyme");
+		Fluid *OXYConjugate = bioCoder.new_fluid("OXYConjugate",Volume(MICRO_LITER,100));
+
+		bioCoder.next_step();
+		bioCoder.measure_fluid(urineSample,Volume(MICRO_LITER,20),tube1);
+		bioCoder.measure_fluid(FentanylEnzyme, tube1);
+		bioCoder.measure_fluid(FentanylConjugate,tube1);
+
+		bioCoder.measure_fluid(urineSample,Volume(MICRO_LITER,20),tube2);
+		bioCoder.measure_fluid(OXYEnzyme, tube2);
+		bioCoder.measure_fluid(OXYConjugate, tube2);
+
+		bioCoder.next_step();
+		bioCoder.tap(tube1,Time(SECS,60));
+		bioCoder.tap(tube2,Time(SECS,60));
+
+		bioCoder.next_step();
+		bioCoder.incubate(tube1,23,Time(MINS,60));
+		bioCoder.incubate(tube2,23,Time(MINS,60));
+
+		bioCoder.next_step();
+		bioCoder.drain(tube1,"Waste");
+		bioCoder.drain(tube2,"Waste");
+
+		//wash Enzyme;
+		bioCoder.next_step();
+		bioCoder.LOOP(6);
+		{
+			bioCoder.next_step();
+			bioCoder.measure_fluid(Wash,Volume(MICRO_LITER,350), tube1);
+			bioCoder.measure_fluid(Wash,Volume(MICRO_LITER,350), tube2);
+
+			bioCoder.next_step();
+			bioCoder.vortex(tube1,Time(SECS,45));
+			bioCoder.vortex(tube2,Time(SECS,45));
+
+			bioCoder.next_step();
+			bioCoder.drain(tube1,"Waste");
+			bioCoder.drain(tube2,"Waste");
+		}
+		bioCoder.END_LOOP();
+
+		bioCoder.next_step();
+		bioCoder.measure_fluid(TMBSubstrate,Volume(MICRO_LITER,100),tube1);
+		bioCoder.measure_fluid(TMBSubstrate,Volume(MICRO_LITER,50),tube2);
+
+		bioCoder.next_step();
+		bioCoder.incubate(tube1,23,Time(MINS,30));
+		bioCoder.incubate(tube2,23,Time(MINS,30));
+
+		bioCoder.next_step();
+		bioCoder.measure_fluid(StopReagent,Volume(MICRO_LITER,100),tube1);
+		bioCoder.measure_fluid(StopReagent,Volume(MICRO_LITER,100),tube2);
+
+		bioCoder.next_step();
+		bioCoder.vortex(tube1,Time(SECS,60));
+		bioCoder.vortex(tube2,Time(SECS,60));
+
+		bioCoder.next_step();
+		bioCoder.measure_fluorescence(tube1,Time(MINS,30),"FinalFentanylReading");
+		bioCoder.measure_fluorescence(tube2,Time(MINS,30),"FinalOXYReading");
+
+		bioCoder.next_step();
+		bioCoder.drain(tube1,"Waste");
+		bioCoder.drain(tube2,"Waste");
+	}
+
+	bioCoder.END_IF();
+
+	bioCoder.end_protocol();
+
+	/*
+	 * Final results will be held in the labeled data called:
+	 * FinalHeroinReading
+	 * FinalCiproReading
+	 * FinalOXYReading
+	 * FinalFentanylReading
+	 */
+
+
+
+}
+
+void BioSystemTest::BroadSpectrumOptiate()
+{
+	BioSystem bioCoder;
+
+	Fluid *urineSample = bioCoder.new_fluid("Urine", Volume(MICRO_LITER,50));
+
+	Fluid *antiMorphine = bioCoder.new_fluid("Anti-Morphine", Volume(MICRO_LITER,10));
+	Fluid *antiOXY = bioCoder.new_fluid("Anti-Oxycodone", Volume(MICRO_LITER,10));
+	Fluid *antiFentanyl = bioCoder.new_fluid("Anti-Fentanyl", Volume(MICRO_LITER,10));
+	Fluid *antiCiprofloxcin = bioCoder.new_fluid("Anti-Ciprofloxcin", Volume(MICRO_LITER,10));
+	Fluid *antiHeroin = bioCoder.new_fluid("Anti-Heroin", Volume(MICRO_LITER,10));
+
+	Container* tube1 = bioCoder.new_container(STERILE_MICROFUGE_TUBE2ML);
+	Container* tube2 = bioCoder.new_container(STERILE_MICROFUGE_TUBE2ML);
+	Container* tube3 = bioCoder.new_container(STERILE_MICROFUGE_TUBE2ML);
+	Container* tube4 = bioCoder.new_container(STERILE_MICROFUGE_TUBE2ML);
+	Container* tube5 = bioCoder.new_container(STERILE_MICROFUGE_TUBE2ML);
+
+
+	bioCoder.first_step();
+	bioCoder.measure_fluid(urineSample,Volume(MICRO_LITER,10),tube1);
+	bioCoder.measure_fluid(antiMorphine, tube1);
+
+	bioCoder.measure_fluid(urineSample,Volume(MICRO_LITER,10),tube2);
+	bioCoder.measure_fluid(antiOXY, tube2);
+
+	bioCoder.measure_fluid(urineSample,Volume(MICRO_LITER,10),tube3);
+	bioCoder.measure_fluid(antiFentanyl, tube3);
+
+	bioCoder.measure_fluid(urineSample,Volume(MICRO_LITER,10),tube4);
+	bioCoder.measure_fluid(antiCiprofloxcin, tube4);
+
+	bioCoder.measure_fluid(urineSample,Volume(MICRO_LITER,10),tube5);
+	bioCoder.measure_fluid(antiHeroin, tube5);
+
+	bioCoder.next_step();
+	bioCoder.measure_fluorescence(tube1,Time(SECS,5),"MorphineReading");
+	bioCoder.measure_fluorescence(tube2,Time(SECS,5),"OXYReading");
+	bioCoder.measure_fluorescence(tube3,Time(SECS,5),"FentanylReading");
+	bioCoder.measure_fluorescence(tube4,Time(SECS,5),"CiprofloxcinReading");
+	bioCoder.measure_fluorescence(tube5,Time(SECS,5),"HeroinReading");
+
+	bioCoder.next_step();
+	bioCoder.drain(tube1,"Waste");
+	bioCoder.drain(tube2,"Waste");
+	bioCoder.drain(tube3,"Waste");
+	bioCoder.drain(tube4,"Waste");
+	bioCoder.drain(tube5,"Waste");
+
+	bioCoder.end_protocol();
+}
+

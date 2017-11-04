@@ -5,7 +5,7 @@
  *      Author: chriscurtis
  */
 
-#include "../Headers/BasicBlock.h"
+#include "../Headers/BasicBlock/BasicBlock.h"
 
 
 namespace BioCoder{
