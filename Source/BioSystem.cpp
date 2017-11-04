@@ -1514,17 +1514,17 @@ BioOperation * BioSystem:: ce_detect (Container* container1, float length, float
 BioOperation * BioSystem:: ce_detect (Container* container1, float length, float volt_per_cm, Fluid* fluid1, Time time1, std::string nickname)
 {
 
-	std::vector<Property> properties;
+	std::vector<Property*> properties;
 	std:: stringstream ss;
 	ss<<length;
-	properties.push_back(BioCoder::Property("Length", ss.str(),"Float"));
+	properties.push_back(new BioCoder::Property("Length", ss.str(),"Float"));
 	ss.clear();
 	ss<<volt_per_cm;
-	properties.push_back(BioCoder::Property("Volts per Centimeter", ss.str(),"Volts"));
-	properties.push_back(BioCoder::Property("Fluid", fluid1->toString(),"Fluid"));
-	properties.push_back(time1);
+	properties.push_back(new BioCoder::Property("Volts per Centimeter", ss.str(),"Volts"));
+	properties.push_back(new BioCoder::Property("Fluid", fluid1->toString(),"Fluid"));
+	properties.push_back(new Time(time1._unit, time1._value));
 
-	Operation* detectOperation = new Detect(container1,nickname,properties);
+	Operation* detectOperation = new Detect(container1,"CE_DETECT",nickname,properties);
 	AddOperationToList(detectOperation);
 
 
@@ -1577,9 +1577,9 @@ BioOperation * BioSystem:: ce_detect (Container* container1, float length, float
 BioOperation * BioSystem:: measure_fluorescence (Container* container1, Time time1, std::string nickname)
 {
 
-	std::vector<Property> properties;
-	properties.push_back(time1);
-	Operation* detectOperation = new Detect(container1,nickname,properties);
+	std::vector<Property*> properties;
+	properties.push_back(new Time(time1._unit,time1._value));
+	Operation* detectOperation = new Detect(container1,"MEASURE_FLUORESCENCE",nickname,properties);
 	AddOperationToList(detectOperation);
 
 	fprintf(fp, "Measure the fluorescence of %s.<br>", container1->contents->new_name.c_str());
@@ -1601,11 +1601,11 @@ BioOperation * BioSystem:: electrophoresis(Container* container1, std::string ni
 
 BioOperation * BioSystem:: electrophoresis(Container* container1, float agar_conc, std::string nickname)
 {
-	std::vector<Property> properties;
+	std::vector<Property*> properties;
 	std::stringstream ss;
 	ss<<agar_conc;
-	properties.push_back(BioCoder::Property("AGAR Concentration", ss.str(),"Float"));
-	Operation* detectOperation = new Detect(container1,nickname,properties);
+	properties.push_back(new BioCoder::Property("AGAR Concentration", ss.str(),"Float"));
+	Operation* detectOperation = new Detect(container1,"ELECTROPHORESIS",nickname,properties);
 	AddOperationToList(detectOperation);
 
 	//TODO Pass-on relevent info to SIMs.
@@ -1635,8 +1635,8 @@ BioOperation * BioSystem:: electrophoresis(Container* container1, float agar_con
 BioOperation * BioSystem:: sequencing(Container* container1, std::string nickname)
 {
 
-	std::vector<Property> properties;
-	Operation* detectOperation = new Detect(container1,nickname,properties);
+	std::vector<Property*> properties;
+	Operation* detectOperation = new Detect(container1,"SEQUENCING",nickname,properties);
 	AddOperationToList(detectOperation);
 
 	fprintf(fp,"Dilute %s to <font color=#357EC7>100ng/ �l</font> and send <font color=#357EC7>1 �g (10 �L)</font> for sequencing.<br>", container1->contents->new_name.c_str());
@@ -1653,8 +1653,8 @@ BioOperation * BioSystem:: sequencing(Container* container1, std::string nicknam
 BioOperation * BioSystem:: weigh(Container* container1, std::string nickname)
 {
 
-	std::vector<Property> properties;
-	Operation* detectOperation = new Detect(container1,nickname,properties);
+	std::vector<Property*> properties;
+	Operation* detectOperation = new Detect(container1,"WEIGH",nickname,properties);
 	AddOperationToList(detectOperation);
 
 	fprintf(fp, "Weigh the amount of %s present.<br>", container1->contents->new_name.c_str());
@@ -1671,8 +1671,8 @@ BioOperation * BioSystem:: weigh(Container* container1, std::string nickname)
 BioOperation * BioSystem:: facs(Container* container1, std:: string nickname)
 {
 
-	std::vector<Property> properties;
-	Operation* detectOperation = new Detect(container1,nickname,properties);
+	std::vector<Property*> properties;
+	Operation* detectOperation = new Detect(container1,"FACS",nickname,properties);
 	AddOperationToList(detectOperation);
 
 	fprintf(fp, "FACS: sort %s based on fluorescence.", container1->contents->new_name.c_str());
@@ -1688,24 +1688,24 @@ BioOperation * BioSystem:: facs(Container* container1, std:: string nickname)
 
 BioOperation * BioSystem:: cell_culture(Container* cells, Fluid* medium, int centri_speed, float temp, float time, float percent_CO2, Fluid* for_wash_valves, Fluid* for_wash_chambers, Fluid* for_trypsinization, float for_feeding, std::string nickname)
 {
-	std::vector<Property> properties;
+	std::vector<Property *> properties;
 	std::stringstream ss;
-	properties.push_back(BioCoder::Property("Medium", medium->toString(),"Fluid"));
+	properties.push_back(new BioCoder::Property("Medium", medium->toString(),"Fluid"));
 	ss<<centri_speed;
-	properties.push_back(BioCoder::Property("Centrifuge Speed", ss.str(),"RPM"));
-	properties.push_back(Temperature(CELSIUS, temp));
-	properties.push_back(Time(SECS, time));
+	properties.push_back(new BioCoder::Property("Centrifuge Speed", ss.str(),"RPM"));
+	properties.push_back(new Temperature(CELSIUS, temp));
+	properties.push_back(new Time(SECS, time));
 	ss.clear();
 	ss<<percent_CO2;
-	properties.push_back(BioCoder::Property("C02 Percentage",ss.str(), "Percentage"));
-	properties.push_back(BioCoder::Property("Wash Valves", for_wash_valves->toString(),"Fluid"));
-	properties.push_back(BioCoder::Property("Wash Chambers", for_wash_chambers->toString(),"Fluid"));
-	properties.push_back(BioCoder::Property("Trypsinization", for_trypsinization->toString(),"Fluid"));
+	properties.push_back(new BioCoder::Property("C02 Percentage",ss.str(), "Percentage"));
+	properties.push_back(new BioCoder::Property("Wash Valves", for_wash_valves->toString(),"Fluid"));
+	properties.push_back(new BioCoder::Property("Wash Chambers", for_wash_chambers->toString(),"Fluid"));
+	properties.push_back(new BioCoder::Property("Trypsinization", for_trypsinization->toString(),"Fluid"));
 	ss.clear();
 	ss<<for_feeding;
-	properties.push_back(BioCoder::Property("Feeding",ss.str(), "Float"));
+	properties.push_back(new BioCoder::Property("Feeding",ss.str(), "Float"));
 
-	Operation* detectOperation = new Detect(cells,nickname,properties);
+	Operation* detectOperation = new Detect(cells,"CELL_CULTURE",nickname,properties);
 	AddOperationToList(detectOperation);
 
 
@@ -1726,10 +1726,10 @@ BioOperation * BioSystem:: cell_culture(Container* cells, Fluid* medium, int cen
 BioOperation * BioSystem:: transfection(Container* container1, Fluid* medium, Fluid* dna, std::string nickname)
 {
 
-	std::vector<Property> properties;
-	properties.push_back(BioCoder::Property("Medium", medium->toString(),"Fluid"));
-	properties.push_back(BioCoder::Property("DNA", dna->toString(),"Fluid"));
-	Operation* detectOperation = new Detect(container1,nickname,properties);
+	std::vector<Property* > properties;
+	properties.push_back(new BioCoder::Property("Medium", medium->toString(),"Fluid"));
+	properties.push_back(new BioCoder::Property("DNA", dna->toString(),"Fluid"));
+	Operation* detectOperation = new Detect(container1,"TRANSFECTION",nickname,properties);
 	AddOperationToList(detectOperation);
 
 
@@ -1760,18 +1760,18 @@ BioOperation * BioSystem:: electroporate (Container* container1, float voltage, 
 		electro_no++;
 	}
 
-	std::vector<Property> properties;
+	std::vector<Property*> properties;
 	std::stringstream ss;
 	ss<<voltage;
 
 
-	properties.push_back(BioCoder::Property("Voltage", ss.str(),"Volts"));
+	properties.push_back(new BioCoder::Property("Voltage", ss.str(),"Volts"));
 
 	ss.clear();
 	ss<<no_pulses;
-	properties.push_back(BioCoder::Property("Num Pulse", ss.str(),"Integer"));
+	properties.push_back(new BioCoder::Property("Num Pulse", ss.str(),"Integer"));
 
-	Operation* detectOperation = new Detect(container1,nickname,properties);
+	Operation* detectOperation = new Detect(container1,"ELECTROPORATE",nickname,properties);
 	AddOperationToList(detectOperation);
 
 	BioOperation *detect = new BioOperation(this->_opNum++, DETECT, ELECTROPORATE, Time(), nickname );
@@ -1969,10 +1969,30 @@ void BioSystem :: END_WHILE()
 
 void BioSystem::PrintCompilationFile(std::string fileName)
 {
-	for (Operation* o : *(this->_operationList))
+	if(fileName != "")
+		fileName= fileName + ".json";
+	std:: ostream& out = (fileName != "") ? *(new std::ofstream(fileName.c_str())) : std::cout;
+
+	std::string buffer = "\t";
+
+	out << "\"EXPERIEMENT\": {\n";
+	out << buffer + "\"Name\" : \"" + this->filename + "\",\n";
+	out << buffer + "\"INPUTS\": [\n";
+	out << buffer + "],\n";
+
+	out << buffer + "\"INSTRUCTIONS\": [\n";
+	for (int i =0; i < this->_operationList->size();++i)
 	{
-		std::cout << o->toString("") + ","  <<std::endl;
+		Operation* o  = this->_operationList->at(i);
+		out << o->toString(buffer+"\t");
+
+		if ( i < this->_operationList->size()-1)
+			out << ",\n";
+		else
+			out <<"\n";
 	}
+	out << buffer + "]\n";
+	out << "}\n";
 
 }
 

@@ -48,9 +48,7 @@ public:
 		ret += buf + "\"NAME\" : \"Heat\"\n";
 
 		ret += buf + "\"INPUTS\" : [\n";
-
 		ret += buf + "\t{\n";
-
 		ret += buf + "\t\t" + "\"INPUT_TYPE\" : \"VARIABLE\",\n";
 		ret += __inputs->toString(buf + "\t\t");
 
