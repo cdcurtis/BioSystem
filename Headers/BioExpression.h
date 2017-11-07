@@ -57,11 +57,7 @@ struct BioExpression
 	BioExpression(int loop){
 		this->_constant = loop;
 	}
-	std::string toString(std::string buffer){
-		std::string ret;
-		ret+= "NO CODE GEN FOR BIO EXPRESSION\n";
-		return ret;
-	}
+	std::string toString(std::string buffer);
 
 };
 

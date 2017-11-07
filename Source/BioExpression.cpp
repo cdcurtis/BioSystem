@@ -211,4 +211,63 @@ std::ostream& operator<<(std::ostream& os, const  BioExpression& obj)
 	return os;
 }
 
+std::string BioExpression::toString(std::string buffer)
+{
+	std::string lhs = "";
+	if (this->_lhs != NULL)
+		lhs=this->_lhs->toString("");
+	else if(this->_terminalLHS != NULL)
+		lhs = this->_terminalLHS->Name();
+	else if (this->_variable != -1 )
+		lhs = this->_variable;
+	else if (this->_lhsNickName != "")
+		lhs = this->_lhsNickName;
+
+	std::string condition="";
+	switch (this->_conditionalOperation) {
+	case GREATER_THAN:
+		condition = ">";
+		break;
+	case GREATER_THAN_or_EQUAL:
+		condition = ">=";
+		break;
+	case LESS_THAN:
+		condition = "<";
+		break;
+	case LESS_THAN_or_EQUAL:
+		condition = ">=";
+		break;
+	case EQUAL:
+		condition = "==";
+		break;
+	case NOT_EQUAL:
+		condition = "!=";
+		break;
+	case NOT:
+		condition = "!" ;
+		break;
+	case AND:
+		condition = "&&";
+		break;
+	case OR:
+		condition = "||";
+		break;
+	default:
+		break;
+	}
+
+	std::string rhs="";
+	if (this->_rhs != NULL)
+		rhs = this->_rhs->toString("");
+	else if(this->_terminalRHS != NULL)
+		rhs = this->_terminalRHS->Name();
+	else if (this->_constant != -1 )
+		rhs = this->_constant;
+	else if (this->_rhsNickname != "")
+		rhs = this->_rhsNickname;
+
+	return buffer + lhs + " " + condition + " " + rhs;
+}
+
+
 }

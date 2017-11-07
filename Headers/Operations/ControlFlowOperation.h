@@ -21,12 +21,20 @@ public:
 	BioExpression* condition;
 	std::vector<Operation*> * conditionalBody;
 
+	virtual ~ControlFlowOperation()
+	{}
 	ControlFlowOperation(BioExpression* exp):condition(exp) {
 		conditionalBody = new std::vector<Operation*>();
 	}
 
-	void AddOpertion(Operation* op){
+	virtual void AddOpertion(Operation* op){
+		std::cout<< "controlFLow AddOperation\n";
 		this->conditionalBody->push_back(op);
+	}
+
+	virtual std::string toString(std::string buffer)
+	{
+		return "NO TEXT GEN FOR CONTROLFLOW GENERIC";
 	}
 
 

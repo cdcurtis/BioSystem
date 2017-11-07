@@ -27,7 +27,7 @@ void BioSystem :: AddOperationToList(ControlFlowOperation* op, bool isElseIF,boo
 	}
 	else if(isElseIF){ //new elseif branch
 		Branch* b = reinterpret_cast<Branch*>(this->conditionalStack.at(this->conditionalStack.size()-1));
-		b->AddElseIfBranch(op);
+		b->AddElseIfBranch(reinterpret_cast<ElseIfBranch*>(op));
 	}
 	else if(isElse){// new else branch
 		Branch* b = reinterpret_cast<Branch*>(this->conditionalStack.at(this->conditionalStack.size()-1));
@@ -1601,6 +1601,13 @@ BioOperation * BioSystem:: electrophoresis(Container* container1, std::string ni
 
 BioOperation * BioSystem:: electrophoresis(Container* container1, float agar_conc, std::string nickname)
 {
+	BioOperation *detect = new BioOperation(this->_opNum++, DETECT, ELECTROPHORESIS,Time(), nickname );
+		this->SetOpsParent(detect,container1);
+		this->BioGraphMaintance(detect);
+		this->ClearContainerOpList(container1);
+		this->AddOpToContainer(detect, container1);
+
+
 	std::vector<Property*> properties;
 	std::stringstream ss;
 	ss<<agar_conc;
@@ -1624,11 +1631,6 @@ BioOperation * BioSystem:: electrophoresis(Container* container1, float agar_con
 		electrophoresis_no++;
 	}
 
-	BioOperation *detect = new BioOperation(this->_opNum++, DETECT, ELECTROPHORESIS,Time(), nickname );
-	this->SetOpsParent(detect,container1);
-	this->BioGraphMaintance(detect);
-	this->ClearContainerOpList(container1);
-	this->AddOpToContainer(detect, container1);
 
 	return detect;
 }
@@ -1826,7 +1828,7 @@ void BioSystem:: IF(std::string lhs , ConditionalOps condition, double constant)
 
 void BioSystem:: ELSE_IF(BioExpression* expression)
 {
-	ControlFlowOperation * op = new ControlFlowOperation(expression);
+	ElseIfBranch * op = new ElseIfBranch(expression);
 	this->AddOperationToList(op,true,false);
 
 	BioOperation* else_if_statement = new BioOperation(this->_opNum++, ELSE_IF_OP, expression);

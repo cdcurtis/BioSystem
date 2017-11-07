@@ -9,6 +9,7 @@
 #define HEADERS_OPERATIONS_BRANCHING_H_
 
 #include "ControlFlowOperation.h"
+#include "ElseifBranch.h"
 
 namespace BioCoder {
 
@@ -30,12 +31,17 @@ public:
 	}
 
 	void AddOpertion(Operation* op){
+	//	std::cout<< "Branch AddOperation\n";
+
 		this->currentWorkingBranch->push_back(op);
+//		std::cout << currentWorkingBranch<< "Size: " << currentWorkingBranch->size()<<std::endl;
 	}
 
-	void AddElseIfBranch(ControlFlowOperation * branch){
+	void AddElseIfBranch(ElseIfBranch * branch){
 		this->elseIfBranches->push_back(branch);
-		currentWorkingBranch = elseIfBranches;
+	//	std::cout<<"MOVING BRANCH FROM "<< this->conditionalBody << " TO " << branch->conditionalBody<<" "<<std::endl;
+		this->currentWorkingBranch = branch->conditionalBody;
+
 	}
 	void SetElse(){
 		currentWorkingBranch = elseBranch;
@@ -49,51 +55,53 @@ public:
 		ret += buf + "\"ID\" :" + '0' /*getID*/+ "\n";
 		ret += buf + "\"CLASSIFICATION\" : \"CFG_BRANCH\"\n";
 
-		ret += buf + "\"CONDITION\" : " + this->condition->toString(buf) + "\n";
+		ret += buf + "\"CONDITION\" : \"" + this->condition->toString("") +"\"\n";
 
-		ret += buf + '\t' + "\"TRUE_BRANCH\" : [\n";
+		ret += buf + "\"TRUE_BRANCH\" : [\n";
 		for(int i =0 ; i < this->conditionalBody->size(); ++i){
 			Operation * input = this->conditionalBody->at(i);
-			ret += buf + "{\n";
+			ret += buf + "\t{\n";
 
-			ret += buf + '\t' + input->toString(buf + '\t');
+			ret += input->toString(buf + "\t\t") +"\n";
 
 			if(i < this->conditionalBody->size()-1)
-				ret += buf + "},\n";
+				ret += buf + "\t},\n";
 			else
-				ret + buf +"}\n";
+				ret += buf +"\t}\n";
 		}
 		ret += buf + "],\n";
 
-		ret += buf + '\t' + "\"FALSE_BRANCH\" : [\n";
+		ret += buf + "\"FALSE_BRANCH\" : [\n";
 		for(int i =0 ; i < this->elseBranch->size(); ++i){
 			Operation * input = this->elseBranch->at(i);
-			ret += buf + "{\n";
+			ret += buf + "\t{\n";
 
-			ret += buf + '\t' + input->toString(buf + '\t');
+			ret += input->toString(buf + "\t\t") +"\n";
 
 			if(i < this->elseBranch->size()-1)
-				ret += buf + "},\n";
+				ret += buf + "\t},\n";
 			else
-				ret + buf +"}\n";
+				ret += buf +"\t}\n";
 		}
-		ret += buf + "],\n";
+		ret += buf + "]";
 
-		ret += buf + '\t' + "\"ELSEIF_BRANCH\" : [\n";
+		if(this->elseIfBranches->size() > 0)
+			ret += ",\n";
+		else
+			ret+= "\n";
 		for(int i =0 ; i < this->elseIfBranches->size(); ++i){
 			Operation * input = this->elseIfBranches->at(i);
-			ret += buf + "{\n";
 
-			ret += buf + '\t' + input->toString(buf + '\t');
+			ret += input->toString(buf) +"\n";
 
-			if(i < this->elseIfBranches->size()-1)
-				ret += buf + "},\n";
+			if(i < this->elseBranch->size()-1)
+				ret += ",\n";
 			else
-				ret + buf +"}\n";
+				ret += "\n";
 		}
-		ret += buf + "]\n";
 
-		ret+= buffer + "}\n";
+
+		ret+= buffer + "}";
 
 		return ret;
 	}

@@ -58,18 +58,22 @@ public:
 		if(this->__properties.size() > 0)
 		{
 			ret+=",\n";
+			for(int i = 0; i < this->__properties.size(); ++i){
+				Property* p = this->__properties.at(i);
+				ret += buf + "\t{\n";
 
-			ret += buf + "\t{\n";
+				ret += buf + "\t\t" + "\"INPUT_TYPE\" : \"PROPERTY\",\n";
 
-			ret += buf + "\t\t" + "\"INPUT_TYPE\" : \"PROPERTY\",\n";
+				ret += p->toString(buf+"\t\t");
 
-			for(Property* p : this->__properties){
-				ret += buf + "\t\t{\n";
-				ret += p->toString(buf+"\t\t\t");
-				ret += buf + "\t\t}\n";
+				if(i < this->__properties.size()-1)
+					ret += buf + "\t},\n";
+				else
+					ret += buf + "\t}\n";
 			}
-			ret += buf + "\t}\n";
 		}
+		else
+			ret += "\n";
 		ret += buf + "]\n";
 		ret += buffer +"}";
 

@@ -32,7 +32,7 @@ public:
 
 			ret+=buf + "\"VALUE\" : \"" + this->unknownPropertyValue + "\",\n";
 			ret+=buf + "\"UNITS\" : \"" + this->unknownPropertyUnits + "\",\n";
-			ret+= "}\n";
+			ret+= buf + "}\n";
 
 			return ret;
 		}

@@ -53,7 +53,7 @@ struct Fluid
 	std::string toString(std::string buffer, Volume v)
 	{
 		std::string ret = buffer + "\"VARIABLE\" : {\n";
-		ret += buffer + "\t" + "\"NAME\" : " + original_name + ",\n";
+		ret += buffer + "\t" + "\"NAME\" : \"" + original_name + "\",\n";
 		ret += v.toString(buffer+"\t");
 		ret += buffer + "}\n";
 		return ret;

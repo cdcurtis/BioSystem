@@ -17,6 +17,7 @@
 #include "Property/Volume.h"
 
 #include "Operations/Branching.h"
+#include "Operations/ElseifBranch.h"
 #include "Operations/ControlFlowOperation.h"
 #include "Operations/Detect.h"
 #include "Operations/Dispense.h"

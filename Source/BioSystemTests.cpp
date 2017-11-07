@@ -76,6 +76,58 @@ void BioSystemTest::SimpleIfProtocol()
 
 }
 
+void BioSystemTest::SimpleIfWithElseIfProtocol()
+{
+	BioSystem bioCoder("SimpleIfWithElseIf");
+
+	Fluid* blood = bioCoder.new_fluid("Blood",Volume(MICRO_LITER, 10));
+	Fluid* water = bioCoder.new_fluid("Water",Volume(MICRO_LITER, 10));
+
+	Container* tube = bioCoder.new_container(STERILE_MICROFUGE_TUBE2ML);
+
+	bioCoder.first_step();
+	bioCoder.measure_fluid(blood, tube);
+	bioCoder.measure_fluid(water, tube);
+
+	bioCoder.next_step();
+	bioCoder.tap(tube,Time(SECS, 10));
+
+	bioCoder.next_step();
+	bioCoder.weigh(tube, "TubeWeight");
+	bioCoder.IF("tubeWeight", LESS_THAN_or_EQUAL, "20UL");
+
+	bioCoder.next_step();
+	bioCoder.measure_fluid(blood,tube);
+	bioCoder.measure_fluid(water,tube);
+
+	bioCoder.next_step();
+	bioCoder.vortex(tube, Time(SECS,20));
+
+	bioCoder.next_step();
+	bioCoder.ELSE_IF("tubeWeight", GREATER_THAN, "40UL");
+
+	bioCoder.next_step();
+	bioCoder.drain(tube,"Waste");
+
+	bioCoder.next_step();
+	bioCoder.measure_fluid(blood,tube);
+	bioCoder.measure_fluid(water,tube);
+
+	bioCoder.next_step();
+	bioCoder.vortex(tube, Time(SECS,20));
+	bioCoder.END_IF();
+
+	bioCoder.next_step();
+	bioCoder.incubate(tube,95,Time(MINS,30));
+
+	bioCoder.end_protocol();
+
+	bioCoder.PrintCompilationFile();
+	//	bioCoder.PrintLeveledProtocol();
+	bioCoder.PrintTreeVisualization("SimpleProtocol");
+
+}
+
 void BioSystemTest:: NestedIFTest()
 {
 	BioSystem bioCoder;
@@ -121,6 +173,7 @@ void BioSystemTest:: NestedIFTest()
 
 	bioCoder.end_protocol();
 
+	bioCoder.PrintCompilationFile();
 	bioCoder.PrintLeveledProtocol();
 	bioCoder.PrintTree();
 	bioCoder.PrintTreeVisualization("NestedIF");

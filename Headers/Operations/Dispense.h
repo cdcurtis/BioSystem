@@ -30,15 +30,15 @@ public:
 	}
 	std::string toString(std::string buffer)
 	{
-		std::string ret=buffer + "\"OPERATION\" : {\n";
+		std::string ret=buffer + "\"OPERATION\":{\n";
 		std::string buf = buffer + '\t';
 
-		ret += buf + "\"NAME\" : \"Dispense\"\n";
-		ret += buf + "\"ID\" :" + '0' /*getID*/+ "\n";
+		ret += buf + "\"NAME\": \"Dispense\"\n";
+		ret += buf + "\"ID\":" + '0' /*getID*/+ "\n";
 		ret += buf + "\"CLASSIFICATION\" : \"DISPENSE\"\n";
 
-		ret += buf + "\"NAME\" : \"Dispense\"\n";
-		ret += buf + "\"INPUTS\" : [\n";
+		ret += buf + "\"NAME\":\"Dispense\"\n";
+		ret += buf + "\"INPUTS\":[\n";
 		ret += buf + '\t' + "{\n";
 
 		ret += buf + "\t\t" + "\"INPUT_TYPE\" : \"VARIABLE\",\n";

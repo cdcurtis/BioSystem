@@ -16,7 +16,7 @@ namespace BioCoder
 class Output:public BioCoder::Operation{
 
 	Container* __inputs;
-	std::vector<Property> __properties;
+	std::vector<Property*> __properties;
 	bool isWaste;
 public:
 	Output(Container* c1, bool isWaste=false){
@@ -40,32 +40,35 @@ public:
 
 		ret += buf + "\"NAME\" : \"Output\"\n";
 		ret += buf + "\"INPUTS\" : [\n";
-		ret += buf + "{\n";
+		ret += buf + "\t{\n";
+		ret += buf + "\t\t" + "\"INPUT_TYPE\" : \"VARIABLE\",\n";
+		ret += __inputs->toString(buf + "\t\t");
 
-		ret += buf + '\t' + "\"INPUT_TYPE\" : \"VARIABLE\",\n";
-		ret += buf + '\t' + this->__inputs->toString(buf + '\t');
 
-		if(this->__properties.size() == 0 && this->__type == EVENT_NOT_SPECIFIED)
-			ret += buf + "}\n";
-		else
-			ret += buf + "},\n";
+		ret += buf +"\t}";
 
-		ret += buf + "{\n";
+		if(this->__properties.size() > 0)
+		{
+			ret+=",\n";
+			for(int i = 0; i < this->__properties.size(); ++i){
+				Property* p = this->__properties.at(i);
+				ret += buf + "\t{\n";
 
-		ret += buf + '\t' + "\"INPUT_TYPE\" : \"PROPERTY\",\n";
+				ret += buf + "\t\t" + "\"INPUT_TYPE\" : \"PROPERTY\",\n";
 
-		for(Property p : this->__properties){
-			ret += buf + "{";
-			ret += buf + p.toString(buf);
+				ret += p->toString(buf+"\t\t");
 
-			//if(this->__type == EVENT_NOT_SPECIFIED)
-			ret += buf + "}\n";
-			//else
-			//	ret += buf + "},\n";
+				if(i < this->__properties.size()-1)
+					ret += buf + "\t},\n";
+				else
+					ret += buf + "\t}\n";
+			}
 		}
+		else
+			ret += "\n";
+		ret += buf + "]\n";
+		ret += buffer +"}";
 
-
-		ret+= "}\n";
 
 		return ret;
 	}

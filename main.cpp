@@ -22,8 +22,10 @@ using namespace BioCoder;
 int main ()
 {
 	//BioSystemTest::SimpleProtocol();
-	BioSystemTest::SimpleIfProtocol();
-	//BioSystemTest::NestedIFTest();
+	//BioSystemTest::SimpleIfProtocol();
+	//BioSystemTest::SimpleIfWithElseIfProtocol();
+
+	BioSystemTest::NestedIFTest();
 	//BioSystemTest::SimpleWhileSensorConditional();
 	//BioSystemTest::NestedIFInWhile();
 	//BioSystemTest::SimplePCRLoop();

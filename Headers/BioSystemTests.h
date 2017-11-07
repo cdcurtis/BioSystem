@@ -19,6 +19,7 @@ public:
 	static void NestedIFInWhile();
 	static void SimpleProtocol();
 	static void SimpleIfProtocol();
+	static void SimpleIfWithElseIfProtocol();
 
 	static void SimplePCRLoop();
 	static void ProbablisticPCR();
